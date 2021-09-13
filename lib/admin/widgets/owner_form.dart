@@ -1,5 +1,7 @@
+import 'dart:ffi';
 import 'dart:io';
 
+import 'package:boarding_house_mapping_v2/admin/models/owner_info.dart';
 import 'package:boarding_house_mapping_v2/controllers/admin_controller.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -9,14 +11,12 @@ import 'package:form_builder_image_picker/form_builder_image_picker.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:path/path.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 final _formKey = GlobalKey<FormBuilderState>();
 final _loginFormKey = GlobalKey<FormBuilderState>();
 final genderOptions = ['Male', 'Female'];
 final _adminController = Get.put(AdminController());
-var _nameTextController = TextEditingController();
-var _emailTextController = TextEditingController();
-var _passTextController = TextEditingController();
 
 FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -51,11 +51,12 @@ void _ownerLogin(context) {
                   _loginFormKey.currentState!.value['password']);
 
               _adminController.disableAuthForm();
+              _formKey.currentState!.patchValue({
+                'ownerName': '${_auth.currentUser!.displayName}',
+                'emailAddress': _auth.currentUser!.email as String,
+                'ownerPassword': _loginFormKey.currentState!.value['password']
+              });
               Get.back();
-              _nameTextController.text = '${_auth.currentUser!.displayName}';
-              _emailTextController.text = _auth.currentUser!.email as String;
-              _passTextController.text =
-                  _loginFormKey.currentState!.value['password'];
             }
           }
         } on FirebaseAuthException catch (e) {
@@ -119,14 +120,13 @@ void _ownerLogin(context) {
   );
 }
 
-Future<List<String>> _uploadPhotos(List<File> photos) async {
+Future<List<String>> _uploadPhotos(List<File> photos, uid, bldgName) async {
   List<String> _downloadUrls = [];
   await Future.forEach(photos, (File photo) async {
     Reference ref = FirebaseStorage.instance
         .ref()
-        .child('photos')
-        .child('test-uid')
-        .child('test-bldgName')
+        .child(uid)
+        .child(bldgName)
         .child(basename(photo.path));
     final UploadTask uploadTask = ref.putFile(photo);
     final TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() {
@@ -152,7 +152,6 @@ Widget buildOwnerForm(context) {
               children: <Widget>[
                 Obx(
                   () => FormBuilderTextField(
-                    controller: _nameTextController,
                     name: 'ownerName',
                     // valueTransformer: (value) {
                     //   if (_auth.currentUser != null) {
@@ -170,7 +169,6 @@ Widget buildOwnerForm(context) {
                   ),
                 ),
                 Obx(() => FormBuilderTextField(
-                      controller: _emailTextController,
                       name: 'emailAddress',
                       enabled: _adminController.isAuthFormEnabled.value,
                       // valueTransformer: (value) {
@@ -191,7 +189,6 @@ Widget buildOwnerForm(context) {
                     )),
                 Obx(
                   () => FormBuilderTextField(
-                    controller: _passTextController,
                     name: 'ownerPassword',
                     // valueTransformer: (value) {
                     //   if (_auth.currentUser != null) {
@@ -269,28 +266,10 @@ Widget buildOwnerForm(context) {
                 ),
                 FormBuilderImagePicker(
                   name: 'photos',
+                  imageQuality: 80,
                   decoration: const InputDecoration(labelText: 'Pick Photos'),
                   maxImages: 10,
                 ),
-                const SizedBox(height: 15),
-                ElevatedButton(
-                    child: Text('Save'),
-                    onPressed: () {
-                      _formKey.currentState!.save();
-                      print('value on save');
-                      print(_formKey.currentState!.value);
-                      if (_formKey.currentState!.saveAndValidate()) {
-                        if (!_formKey.currentState!.value['emailAddress']
-                            .contains('_owner@')) {
-                          _formKey.currentState!.invalidateField(
-                              name: 'emailAddress',
-                              errorText:
-                                  'Email address must contain "_owner@" in order to be identified \nby the system as an owner, eg. sample_user_owner@gmail.com');
-                        }
-                        print('validation');
-                        print(_formKey.currentState!.value);
-                      }
-                    }),
               ],
             ),
           ),
@@ -305,8 +284,11 @@ Widget buildOwnerForm(context) {
                   style: TextStyle(color: Colors.white),
                 ),
                 onPressed: () async {
+                  // dismiss onscreen keyboard
+                  FocusScope.of(context).unfocus();
+
                   if (_formKey.currentState!.saveAndValidate()) {
-                    print(_formKey.currentState!.value['emailAddress']);
+                    // print(_formKey.currentState!.value['emailAddress']);
                     if (!_formKey.currentState!.value['emailAddress']
                         .contains('_owner@')) {
                       _formKey.currentState!.invalidateField(
@@ -314,26 +296,68 @@ Widget buildOwnerForm(context) {
                           errorText:
                               'Email address must contain "_owner@" in order to be identified \nby the system as an owner, eg. sample_user_owner@gmail.com');
                     } else {
+                      // create owner if not logged in and check if email exist
+                      // print(_auth.currentUser!.uid);
+                      if (_auth.currentUser == null) {
+                        try {
+                          print('creating account...');
+                          await _auth.createUserWithEmailAndPassword(
+                              email:
+                                  _formKey.currentState!.value['emailAddress'],
+                              password: _formKey
+                                  .currentState!.value['ownerPassword']);
+                          await _auth.currentUser!.updateDisplayName(_formKey
+                              .currentState!.fields['ownerName']!.value);
+                          print('account created');
+                        } on FirebaseAuthException catch (e) {
+                          if (e.code == 'email-already-in-use') {
+                            _formKey.currentState!.invalidateField(
+                                name: 'emailAddress',
+                                errorText: 'Email address already taken');
+                            // called return to prevent executing the rest of the code if email is taken
+                            return;
+                          }
+                        }
+                      }
+                      CollectionReference _ownerRef =
+                          FirebaseFirestore.instance.collection('owners');
+                      // once authenticated send boarding house data to firebase
+                      OwnerInfo ownerInfo = OwnerInfo(
+                          _auth.currentUser!.uid,
+                          '${_auth.currentUser!.displayName}',
+                          _formKey.currentState!.fields['bldgName']!.value,
+                          _formKey.currentState!.fields['address']!.value,
+                          double.parse(
+                              _formKey.currentState!.fields['lat']!.value),
+                          double.parse(
+                              _formKey.currentState!.fields['lng']!.value),
+                          _formKey.currentState!.fields['content']!.value);
+                      print('uploading data to firebase.....');
+                      _ownerRef
+                          .doc(_auth.currentUser!.uid)
+                          .collection(
+                              _formKey.currentState!.fields['bldgName']!.value)
+                          .add(ownerInfo.getMap());
+                      print(ownerInfo.getMap());
+
+                      print('data uploaded');
+
+                      // upload photos to firebase storage
                       if (_formKey.currentState!.value['photos'] != null) {
                         List<File>? _imgList = [];
                         var _imgPaths = _formKey.currentState!.value['photos'];
                         for (var _path in _imgPaths) {
                           _imgList.add(_path);
                         }
-                        _uploadPhotos(_imgList);
+                        print('uploading photos to firebase....');
+                        _uploadPhotos(_imgList, _auth.currentUser!.uid,
+                            _formKey.currentState!.fields['bldgName']!.value);
+                        print('photos uploaded');
                       }
-                      // try {
-                      //   await _auth.createUserWithEmailAndPassword(
-                      //       email: _formKey.currentState!.value['emailAddress'],
-                      //       password:
-                      //           _formKey.currentState!.value['ownerPassword']);
-                      // } on FirebaseAuthException catch (e) {
-                      //   if (e.code == 'email-already-in-use') {
-                      //     Get.defaultDialog(
-                      //         content: Text(
-                      //             'The account already exists for that email.'));
-                      //   }
-                      // }
+                      // sign out after creating an owner to prevent bugs
+                      _auth.signOut();
+                      _adminController.enableAuthForm();
+                      _formKey.currentState!.reset();
                     }
                   }
                 },
@@ -349,9 +373,6 @@ Widget buildOwnerForm(context) {
                 ),
                 onPressed: () {
                   _formKey.currentState!.reset();
-                  _emailTextController.text = '';
-                  _passTextController.text = '';
-                  _nameTextController.text = '';
                   _auth.signOut();
                   _adminController.enableAuthForm();
                 },
