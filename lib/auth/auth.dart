@@ -45,7 +45,7 @@ class AuthScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return FlutterLogin(
         logo: 'assets/logo/logo.png',
-        title: '      Goa Boarding House\nMap and Information System',
+        title: '      Goa Boarding House\nMap and Reservation System',
         theme: authTheme(),
         onSignup: authUserSignUp,
         onLogin: authUser,
