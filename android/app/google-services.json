@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "557369065403",
+    "project_id": "goa-boarding-house-mapping-2",
+    "storage_bucket": "goa-boarding-house-mapping-2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:557369065403:android:c4db989a251dae615d4e9e",
+        "android_client_info": {
+          "package_name": "com.example.boarding_house_mapping_v2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "557369065403-nh9t1bqfnqrh3colv2vn7detjsrafth3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_KifEpP0TXFmsE0G8LEBWpm-CbGxrgQo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "557369065403-nh9t1bqfnqrh3colv2vn7detjsrafth3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
