@@ -10,6 +10,8 @@ class AdminController extends GetxController {
   var ownerEmail = "Email Address".obs;
   var ownerPass = "Password".obs;
 
+  var isLoading = 'none'.obs;
+
   var isPasswordVisible = false.obs;
 
   void updateIndex(i) {
@@ -32,5 +34,9 @@ class AdminController extends GetxController {
 
   void passwordVisible() {
     isPasswordVisible.value = !isPasswordVisible.value;
+  }
+
+  void loadingValue(value) {
+    isLoading.value = value;
   }
 }

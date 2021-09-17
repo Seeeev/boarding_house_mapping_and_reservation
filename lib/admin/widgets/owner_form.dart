@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:boarding_house_mapping_v2/admin/models/owner_info.dart';
+import 'package:boarding_house_mapping_v2/admin/widgets/upload_indicator.dart';
 import 'package:boarding_house_mapping_v2/controllers/admin_controller.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -274,6 +275,11 @@ Widget buildOwnerForm(context) {
             ),
           ),
         ),
+        _adminController.isLoading.value == 'loading'
+            ? uploadingIndicator()
+            : _adminController.isLoading.value == 'complete'
+                ? uploadCompleteInicator()
+                : Container(),
         Row(
           children: <Widget>[
             Expanded(
@@ -284,8 +290,9 @@ Widget buildOwnerForm(context) {
                   style: TextStyle(color: Colors.white),
                 ),
                 onPressed: () async {
-                  // dismiss onscreen keyboard
+                  // dismiss onscreen keyboard and show progress indicator
                   FocusScope.of(context).unfocus();
+                  _adminController.loadingValue('loading');
 
                   if (_formKey.currentState!.saveAndValidate()) {
                     // print(_formKey.currentState!.value['emailAddress']);
@@ -354,6 +361,7 @@ Widget buildOwnerForm(context) {
                             _formKey.currentState!.fields['bldgName']!.value);
                         print('photos uploaded');
                       }
+                      _adminController.loadingValue('complete');
                       // sign out after creating an owner to prevent bugs
                       _auth.signOut();
                       _adminController.enableAuthForm();
@@ -373,6 +381,7 @@ Widget buildOwnerForm(context) {
                 ),
                 onPressed: () {
                   _formKey.currentState!.reset();
+                  _adminController.loadingValue('none');
                   _auth.signOut();
                   _adminController.enableAuthForm();
                 },
@@ -388,7 +397,7 @@ Widget buildOwnerForm(context) {
             style: TextButton.styleFrom(primary: Colors.black),
             child: Text('Login to an existing owner account'),
           ),
-        )
+        ),
       ],
     ),
   );
