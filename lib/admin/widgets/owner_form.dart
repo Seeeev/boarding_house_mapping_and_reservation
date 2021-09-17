@@ -225,6 +225,8 @@ Widget buildOwnerForm(context) {
                 ),
                 FormBuilderTextField(
                   name: 'bldgName',
+                  keyboardType: TextInputType.text,
+                  textCapitalization: TextCapitalization.sentences,
                   validator: FormBuilderValidators.compose([
                     FormBuilderValidators.required(context),
                   ]),
@@ -232,6 +234,8 @@ Widget buildOwnerForm(context) {
                 ),
                 FormBuilderTextField(
                   name: 'address',
+                  keyboardType: TextInputType.text,
+                  textCapitalization: TextCapitalization.sentences,
                   validator: FormBuilderValidators.compose([
                     FormBuilderValidators.required(context),
                   ]),
@@ -259,6 +263,7 @@ Widget buildOwnerForm(context) {
                     child: FormBuilderTextField(
                       name: 'content',
                       maxLines: null,
+                      textCapitalization: TextCapitalization.sentences,
                       keyboardType: TextInputType.multiline,
                       decoration: InputDecoration.collapsed(
                           hintText: 'Information about the business...'),
@@ -290,9 +295,8 @@ Widget buildOwnerForm(context) {
                   style: TextStyle(color: Colors.white),
                 ),
                 onPressed: () async {
-                  // dismiss onscreen keyboard and show progress indicator
+                  // dismiss onscreen keyboard
                   FocusScope.of(context).unfocus();
-                  _adminController.loadingValue('loading');
 
                   if (_formKey.currentState!.saveAndValidate()) {
                     // print(_formKey.currentState!.value['emailAddress']);
@@ -305,6 +309,9 @@ Widget buildOwnerForm(context) {
                     } else {
                       // create owner if not logged in and check if email exist
                       // print(_auth.currentUser!.uid);
+
+                      // show progress indicator
+                      _adminController.loadingValue('loading');
                       if (_auth.currentUser == null) {
                         try {
                           print('creating account...');
@@ -326,8 +333,7 @@ Widget buildOwnerForm(context) {
                           }
                         }
                       }
-                      CollectionReference _ownerRef =
-                          FirebaseFirestore.instance.collection('owners');
+                      print("Current user: " + '${_auth.currentUser!.uid}');
                       // once authenticated send boarding house data to firebase
                       OwnerInfo ownerInfo = OwnerInfo(
                           _auth.currentUser!.uid,
@@ -340,30 +346,29 @@ Widget buildOwnerForm(context) {
                               _formKey.currentState!.fields['lng']!.value),
                           _formKey.currentState!.fields['content']!.value);
                       print('uploading data to firebase.....');
-                      _ownerRef
+                      await FirebaseFirestore.instance
+                          .collection('owners')
                           .doc(_auth.currentUser!.uid)
                           .collection(
                               _formKey.currentState!.fields['bldgName']!.value)
-                          .add(ownerInfo.getMap());
-                      print(ownerInfo.getMap());
-
-                      print('data uploaded');
+                          .add(ownerInfo.getMap())
+                          .then((value) => print(value));
 
                       // upload photos to firebase storage
-                      if (_formKey.currentState!.value['photos'] != null) {
+                      if (_formKey.currentState!.value['photos'] != null &&
+                          _auth.currentUser != null) {
                         List<File>? _imgList = [];
                         var _imgPaths = _formKey.currentState!.value['photos'];
                         for (var _path in _imgPaths) {
                           _imgList.add(_path);
                         }
                         print('uploading photos to firebase....');
-                        _uploadPhotos(_imgList, _auth.currentUser!.uid,
+                        await _uploadPhotos(_imgList, _auth.currentUser!.uid,
                             _formKey.currentState!.fields['bldgName']!.value);
-                        print('photos uploaded');
                       }
                       _adminController.loadingValue('complete');
                       // sign out after creating an owner to prevent bugs
-                      _auth.signOut();
+                      await _auth.signOut();
                       _adminController.enableAuthForm();
                       _formKey.currentState!.reset();
                     }
