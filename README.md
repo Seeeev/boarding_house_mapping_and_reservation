@@ -1,4 +1,4 @@
-# boarding_house_mapping_v2
+# boarding_house_mapping
 
 A new Flutter project.
 
