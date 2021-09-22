@@ -1,4 +1,4 @@
-# boarding_house_mapping
+# Boarding House Mapping and Reservation
 
 A new Flutter project.
 
