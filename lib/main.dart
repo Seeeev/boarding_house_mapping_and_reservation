@@ -42,17 +42,14 @@ class MyApp extends StatelessWidget {
               ),
               debugShowCheckedModeBanner: false,
               getPages: [
-                GetPage(
-                  name: '/tenant',
-                  page: () => TenantView(),
-                ),
+                GetPage(name: '/tenant', page: () => TenantView()),
                 GetPage(name: '/auth', page: () => AuthScreen()),
                 // GetPage(name: '/signup', page: () => SignUpScreen()),
                 GetPage(name: '/admin', page: () => AdminScreen()),
                 // GetPage(name: '/owner', page: () => OwnerScreen()),
                 // GetPage(name: '/chat', page: () => ChatScreen()),
               ],
-              initialRoute: '/admin',
+              initialRoute: '/tenant',
             );
           }
           // Otherwise, show something whilst waiting for initialization to complete

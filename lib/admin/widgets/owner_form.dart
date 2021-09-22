@@ -322,6 +322,12 @@ Widget buildOwnerForm(context) {
                                   .currentState!.value['ownerPassword']);
                           await _auth.currentUser!.updateDisplayName(_formKey
                               .currentState!.fields['ownerName']!.value);
+
+                          // this line adds the uid of an owner to the database as reference for getting its data
+                          await FirebaseFirestore.instance
+                              .collection('owners')
+                              .add({'uid': _auth.currentUser!.uid}).then(
+                                  (value) => print(value));
                           print('account created');
                         } on FirebaseAuthException catch (e) {
                           if (e.code == 'email-already-in-use') {
@@ -346,13 +352,12 @@ Widget buildOwnerForm(context) {
                               _formKey.currentState!.fields['lng']!.value),
                           _formKey.currentState!.fields['content']!.value);
                       print('uploading data to firebase.....');
+
+                      // add owners data to the database along with its document id for it is used as marker id
                       await FirebaseFirestore.instance
-                          .collection('owners')
-                          .doc(_auth.currentUser!.uid)
-                          .collection(
-                              _formKey.currentState!.fields['bldgName']!.value)
+                          .collection(_auth.currentUser!.uid)
                           .add(ownerInfo.getMap())
-                          .then((value) => print(value));
+                          .then((value) => value.update({'docId': value.id}));
 
                       // upload photos to firebase storage
                       if (_formKey.currentState!.value['photos'] != null &&

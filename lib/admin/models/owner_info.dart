@@ -1,5 +1,6 @@
 class OwnerInfo {
   String uid;
+
   String ownerName;
   String bldgName;
   String address;

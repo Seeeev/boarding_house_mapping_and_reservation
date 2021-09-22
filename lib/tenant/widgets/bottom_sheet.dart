@@ -44,7 +44,7 @@ Widget _buildImgSlider() => CarouselSlider(
       }).toList(),
     );
 
-Future<dynamic> buidBottomSheet(context) {
+Future<dynamic> buidBottomSheet(context, boardingHouseDetails) {
   return showBarModalBottomSheet(
     context: context,
     builder: (context) => Container(
@@ -55,15 +55,15 @@ Future<dynamic> buidBottomSheet(context) {
             // Header contains the building name, owner  and icons: direction and chat
             _buildHeader(
               context: context,
-              bldgName: ownerInfo[0]['bldgName'],
-              ownerName: ownerInfo[0]['ownerName'],
+              bldgName: boardingHouseDetails['bldgName'],
+              ownerName: boardingHouseDetails['ownerName'],
             ),
             // Image slider
             _buildImgSlider(),
             // Info content
             Container(
               margin: EdgeInsets.all(20),
-              child: Text(ownerInfo[0]['content'],
+              child: Text(boardingHouseDetails['content'],
                   style: Theme.of(context).textTheme.bodyText2),
             )
           ],

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:boarding_house_mapping_v2/constants/tenant_constants.dart';
+import 'package:boarding_house_mapping_v2/controllers/tenant_controllers.dart';
 import 'package:boarding_house_mapping_v2/tenant/widgets/bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -36,6 +37,8 @@ var lng = ownerInfo[0]['lng'] as double;
 //   onTap: () => bottomSheet(uid, screenName),
 // );
 
+final tenantController = Get.put(TenantController());
+
 Widget buildMap(context) {
   final Completer<GoogleMapController> _controller = Completer();
 
@@ -46,18 +49,30 @@ Widget buildMap(context) {
       _controller.complete(controller);
     },
     markers: {
-      ...ownerInfo.map((e) {
+      ...tenantController.ownerInfo.map((e) {
         return Marker(
-          markerId: MarkerId('asdasd'),
-          position: LatLng(13.697392705935073, 123.48250838055424),
+          markerId: MarkerId(e['docId']),
+          position: LatLng(e['lat'], e['lng']),
 
           // markerId: MarkerId(e['markerId']),
           // position: LatLng(e['lat'], e['lng']),
           onTap: () {
-            buidBottomSheet(context);
+            buidBottomSheet(context, e);
           },
         );
       })
+      // ...ownerInfo.map((e) {
+      //   return Marker(
+      //     markerId: MarkerId('asdasd'),
+      //     position: LatLng(13.697392705935073, 123.48250838055424),
+
+      //     // markerId: MarkerId(e['markerId']),
+      //     // position: LatLng(e['lat'], e['lng']),
+      //     onTap: () {
+      //       buidBottomSheet(context);
+      //     },
+      //   );
+      // })
     },
   );
 }
