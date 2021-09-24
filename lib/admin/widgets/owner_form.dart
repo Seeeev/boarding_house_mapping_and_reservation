@@ -353,11 +353,15 @@ Widget buildOwnerForm(context) {
                           _formKey.currentState!.fields['content']!.value);
                       print('uploading data to firebase.....');
 
+                      var docId;
                       // add owners data to the database along with its document id for it is used as marker id
                       await FirebaseFirestore.instance
                           .collection(_auth.currentUser!.uid)
                           .add(ownerInfo.getMap())
-                          .then((value) => value.update({'docId': value.id}));
+                          .then((value) {
+                        docId = value.id;
+                        value.update({'docId': value.id});
+                      });
 
                       // upload photos to firebase storage
                       if (_formKey.currentState!.value['photos'] != null &&
@@ -368,8 +372,10 @@ Widget buildOwnerForm(context) {
                           _imgList.add(_path);
                         }
                         print('uploading photos to firebase....');
-                        await _uploadPhotos(_imgList, _auth.currentUser!.uid,
-                            _formKey.currentState!.fields['bldgName']!.value);
+                        // await _uploadPhotos(_imgList, _auth.currentUser!.uid,
+                        //     _formKey.currentState!.fields['bldgName']!.value);
+                        await _uploadPhotos(
+                            _imgList, _auth.currentUser!.uid, docId);
                       }
                       _adminController.loadingValue('complete');
                       // sign out after creating an owner to prevent bugs

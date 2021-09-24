@@ -12,33 +12,9 @@ class TenantView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('current route tenant');
     return Obx(
       () => Scaffold(
-        floatingActionButton: FloatingActionButton(
-          onPressed: () async {
-            // // Get the collection of owner UIDs
-            // CollectionReference uidRef =
-            //     FirebaseFirestore.instance.collection('owners');
-
-            // // for each owner uid(collection) get the boarding house info(document)
-            // await uidRef.get().then((QuerySnapshot uidSnapshot) {
-            //   uidSnapshot.docs.forEach((uidElement) async {
-            //     CollectionReference ownerRef =
-            //         FirebaseFirestore.instance.collection(uidElement['uid']);
-
-            //     await ownerRef.get().then((QuerySnapshot ownerSnapshot) {
-            //       ownerSnapshot.docs.forEach((ownerElement) {
-            //         print(ownerElement.data());
-            //         print('data');
-
-            //       });
-            //     });
-            //   });
-            // });
-
-            print('done');
-          },
-        ),
         drawer: buidDrawer(),
         extendBodyBehindAppBar: true,
         appBar: buildAppBar(),

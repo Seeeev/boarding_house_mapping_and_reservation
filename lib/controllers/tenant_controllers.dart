@@ -6,6 +6,12 @@ class TenantController extends GetxController {
 
   var ownerInfo = [];
 
+  var hasPhotos = false.obs;
+
+  void updatePhotos(value) {
+    hasPhotos.value = value;
+  }
+
   @override
   Future<void> onInit() async {
     super.onInit();

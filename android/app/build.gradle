@@ -57,6 +57,12 @@ flutter {
 }
 
 dependencies {
+    implementation 'com.google.firebase:firebase-storage:10.2.0' 
+    implementation 'com.google.firebase:firebase-auth:10.2.0' 
+    implementation 'com.google.firebase:firebase-core:10.2.0' 
+    implementation 'com.google.firebase:firebase-database:10.2.0' 
+    implementation 'com.firebase:firebase-client-android:2.4.0'
+
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation platform('com.google.firebase:firebase-bom:28.4.0')
     implementation 'com.google.firebase:firebase-analytics'
