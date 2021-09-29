@@ -11,6 +11,8 @@ Future<String?>? authUserSignUp(LoginData data) async {
     }
     await globals.auth.createUserWithEmailAndPassword(
         email: data.name, password: data.password);
+
+    globals.currentRoute = '/tenant';
   } on FirebaseAuthException catch (e) {
     if (e.code == 'weak-password') {
       return 'The password provided is too weak.';
@@ -56,7 +58,7 @@ Future<String?>? authUser(LoginData data) {
         data.name.contains('_admin@')
             ? globals.currentRoute = '/admin'
             : data.name.contains('_owner@')
-                ? globals.currentRoute = '/owner'
+                ? globals.currentRoute = '/owner/chat'
                 : globals.currentRoute = '/tenant';
       }
     } on FirebaseAuthException catch (e) {

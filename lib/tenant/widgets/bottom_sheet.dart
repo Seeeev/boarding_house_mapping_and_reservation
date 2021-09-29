@@ -1,16 +1,15 @@
-import 'package:boarding_house_mapping_v2/constants/tenant_constants.dart';
-import 'package:boarding_house_mapping_v2/controllers/tenant_controllers.dart';
-import 'package:boarding_house_mapping_v2/globals/gobals.dart';
-import 'package:boarding_house_mapping_v2/tenant/widgets/map.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:get/get.dart';
 
-final _tenantController = Get.put(TenantController());
-Widget _buildHeader({context, bldgName, ownerName}) => Container(
+import 'package:boarding_house_mapping_v2/globals/gobals.dart' as globals;
+
+Widget _buildHeader({context, bldgName, ownerName, ownerUid}) => Container(
       margin: EdgeInsets.all(20),
       child: Row(
         children: [
@@ -26,7 +25,67 @@ Widget _buildHeader({context, bldgName, ownerName}) => Container(
               onPressed: () {},
               icon: Icon(Icons.directions, color: Colors.blue)),
           IconButton(
-              onPressed: () {}, icon: Icon(Icons.chat, color: Colors.blue)),
+              onPressed: () async {
+                final _formKey = GlobalKey<FormBuilderState>();
+                // if (globals.auth.currentUser == null) {
+                //   await globals.auth.signInWithEmailAndPassword(
+                //       email: 'sample2_user@gmail.com', password: '11111111');
+                // }
+
+                // drop the bottom sheet
+                Get.back();
+                print('${globals.auth.currentUser!.email}');
+                if (globals.auth.currentUser!.displayName == null) {
+                  Get.defaultDialog(
+                    content: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'You dont have a name yet. Please add a name first before chatting with the owner.',
+                          textAlign: TextAlign.center,
+                        ),
+                        FormBuilder(
+                          key: _formKey,
+                          child: FormBuilderTextField(
+                            name: 'displayName',
+                            decoration: const InputDecoration(
+                                labelText: 'Display Name'),
+                            validator: FormBuilderValidators.compose(
+                                [FormBuilderValidators.required(context)]),
+                          ),
+                        ),
+                      ],
+                    ),
+                    onCancel: () {},
+                    onConfirm: () async {
+                      _formKey.currentState!.save();
+                      if (_formKey.currentState!.saveAndValidate()) {
+                        await globals.auth.currentUser!
+                            .updateDisplayName(
+                                _formKey.currentState!.value['displayName'])
+                            .then(
+                          (value) {
+                            Get.back();
+                            Get.toNamed('/chat/tenant',
+                                preventDuplicates: false,
+                                parameters: {
+                                  'ownerName': ownerName,
+                                  'ownerUid': ownerUid
+                                });
+                          },
+                        );
+                      }
+                    },
+                  );
+                } else
+                  Get.toNamed('/chat/tenant',
+                      preventDuplicates: false,
+                      parameters: {
+                        'ownerName': ownerName,
+                        'ownerUid': ownerUid
+                      });
+              },
+              icon: Icon(Icons.chat, color: Colors.blue)),
         ],
       ),
     );
@@ -80,7 +139,6 @@ Future<dynamic> buidBottomSheet(context, boardingHouseDetails) async {
       .ref("${boardingHouseDetails['uid']}/${boardingHouseDetails['docId']}")
       .listAll();
 
-  print('current result: ' + result.items.toString());
   var photos = [];
   // for every photo, add it to list as a url
   // result.items.forEach((firebase_storage.Reference ref) async {
@@ -102,10 +160,10 @@ Future<dynamic> buidBottomSheet(context, boardingHouseDetails) async {
           children: [
             // Header contains the building name, owner  and icons: direction and chat
             _buildHeader(
-              context: context,
-              bldgName: boardingHouseDetails['bldgName'],
-              ownerName: boardingHouseDetails['ownerName'],
-            ),
+                context: context,
+                bldgName: boardingHouseDetails['bldgName'],
+                ownerName: boardingHouseDetails['ownerName'],
+                ownerUid: boardingHouseDetails['uid']),
             // Image slider
             _buildImgSlider(photos),
             // Info content

@@ -8,8 +8,12 @@ Widget actionButton() {
   return PopupMenuButton(
     onSelected: (result) {
       print(result);
-      globals.auth.signOut();
-      Get.offNamed('/auth');
+
+      if (result == "Logout") {
+        globals.auth.signOut();
+        Get.offNamed('/auth');
+      } else
+        print(globals.auth.currentUser!.uid);
     },
     icon: Icon(Icons.settings),
     itemBuilder: ((BuildContext context) {

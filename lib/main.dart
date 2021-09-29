@@ -6,6 +6,8 @@ import 'package:firebase_core/firebase_core.dart';
 
 import 'admin/admin.dart';
 import 'auth/auth.dart';
+import 'chat/owner_chat.dart';
+import 'chat/tenant_chat.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,10 +48,12 @@ class MyApp extends StatelessWidget {
                 GetPage(name: '/auth', page: () => AuthScreen()),
                 // GetPage(name: '/signup', page: () => SignUpScreen()),
                 GetPage(name: '/admin', page: () => AdminScreen()),
+                GetPage(name: '/chat/tenant', page: () => TenantChatScreen()),
+                GetPage(name: '/chat/owner', page: () => OwnerChatScreen()),
                 // GetPage(name: '/owner', page: () => OwnerScreen()),
                 // GetPage(name: '/chat', page: () => ChatScreen()),
               ],
-              initialRoute: '/tenant',
+              initialRoute: '/auth',
             );
           }
           // Otherwise, show something whilst waiting for initialization to complete
