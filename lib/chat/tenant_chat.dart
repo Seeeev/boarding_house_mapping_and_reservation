@@ -97,7 +97,10 @@ class _MyHomePageState extends State<TenantChatScreen> {
             .collection('chat_ids')
             .doc(Get.parameters['ownerUid']!)
             .collection('tenantId')
-            .add({'tenantId': globals.auth.currentUser!.uid});
+            .add({
+          'tenantId': globals.auth.currentUser!.uid,
+          'displayName': globals.auth.currentUser!.displayName
+        });
       }
     });
 

@@ -1,3 +1,4 @@
+import 'package:boarding_house_mapping_v2/chat/owner_chat_messages.dart';
 import 'package:boarding_house_mapping_v2/tenant/tenant.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -50,10 +51,12 @@ class MyApp extends StatelessWidget {
                 GetPage(name: '/admin', page: () => AdminScreen()),
                 GetPage(name: '/chat/tenant', page: () => TenantChatScreen()),
                 GetPage(name: '/chat/owner', page: () => OwnerChatScreen()),
+                GetPage(
+                    name: '/chat/owner-messages', page: () => ChatMessages())
                 // GetPage(name: '/owner', page: () => OwnerScreen()),
                 // GetPage(name: '/chat', page: () => ChatScreen()),
               ],
-              initialRoute: '/auth',
+              initialRoute: '/chat/owner',
             );
           }
           // Otherwise, show something whilst waiting for initialization to complete

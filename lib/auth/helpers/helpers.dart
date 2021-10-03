@@ -58,7 +58,7 @@ Future<String?>? authUser(LoginData data) {
         data.name.contains('_admin@')
             ? globals.currentRoute = '/admin'
             : data.name.contains('_owner@')
-                ? globals.currentRoute = '/owner/chat'
+                ? globals.currentRoute = '/chat/owner'
                 : globals.currentRoute = '/tenant';
       }
     } on FirebaseAuthException catch (e) {

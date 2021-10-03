@@ -49,11 +49,14 @@ class AuthScreen extends StatelessWidget {
         theme: authTheme(),
         onSignup: authUserSignUp,
         onLogin: authUser,
-        onSubmitAnimationCompleted: () =>
-            Get.offNamed(globals.currentRoute, parameters: {
-              'email': globals.auth.currentUser?.email as String,
-              'uid': globals.auth.currentUser!.uid,
-            }),
+        onSubmitAnimationCompleted: () {
+          print('laog laog');
+          print(globals.currentRoute);
+          Get.offNamed(globals.currentRoute, parameters: {
+            'email': globals.auth.currentUser?.email as String,
+            'uid': globals.auth.currentUser!.uid,
+          });
+        },
         onRecoverPassword: _recoverPassword);
   }
 }
