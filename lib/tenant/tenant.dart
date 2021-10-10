@@ -13,17 +13,16 @@ class TenantView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     print('current route tenant');
-    return Obx(
-      () => Scaffold(
-        drawer: buidDrawer(),
-        extendBodyBehindAppBar: true,
-        appBar: buildAppBar(),
-        body: tenantController.isMapLoading.value == 1
-            ? Center(
-                child: CircularProgressIndicator(),
-              )
-            : buildMap(context),
-      ),
+    return Scaffold(
+      drawer: buidDrawer(),
+      extendBodyBehindAppBar: true,
+      appBar: buildAppBar(),
+      // body: tenantController.isMapLoading.value == 1
+      //     ? Center(
+      //         child: CircularProgressIndicator(),
+      //       )
+      //     : buildMap(context),
+      body: buildMap(context),
     );
   }
 }

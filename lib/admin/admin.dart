@@ -2,6 +2,7 @@ import 'package:boarding_house_mapping_v2/admin/widgets/appbar.dart';
 import 'package:boarding_house_mapping_v2/admin/widgets/drawer.dart';
 import 'package:boarding_house_mapping_v2/admin/widgets/owner_form.dart';
 import 'package:boarding_house_mapping_v2/controllers/admin_controller.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -70,15 +71,49 @@ class AdminScreen extends StatelessWidget {
       'content': Faker().lorem
     },
   ];
+  //  _showListofOwners() {
+  //   // return Container();
 
-  Widget _showListofOwners() {
+  //   // FirebaseFirestore.instance
+  //   //     .collection('owners')
+  //   //     .get()
+  //   //     .then((QuerySnapshot querySnapshot) {
+  //   //   querySnapshot.docs.forEach((doc) {
+  //   //     FirebaseFirestore.instance
+  //   //         .collection(doc['uid'])
+  //   //         .get()
+  //   //         .then((QuerySnapshot querySnapshot) {
+  //   //       querySnapshot.docs.forEach((doc) {
+  //   //         print(doc.data());
+  //   //       });
+  //   //     });
+  //   //   });
+  //   // });
+  //   // return Container();
+  // }
+
+  Widget _showListofOwners(context) {
+    return FutureBuilder<QuerySnapshot>(
+        future: FirebaseFirestore.instance.collection('boarding_houses').get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.connectionState == ConnectionState.done) {
+            return _buildWidget(context, snapshot);
+          }
+          return Center(child: CircularProgressIndicator());
+        });
+  }
+
+  Widget _buildWidget(context, snapshot) {
     return GridView.builder(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 1, childAspectRatio: 3),
       primary: false,
       padding: EdgeInsets.all(5),
       shrinkWrap: true,
-      itemCount: _ownerList.length,
+      itemCount: snapshot.data!.docs.length,
       itemBuilder: (context, index) => Card(
         child: Container(
           padding: EdgeInsets.all(10),
@@ -92,25 +127,25 @@ class AdminScreen extends StatelessWidget {
                     backgroundColor: Colors.black,
                     foregroundColor: Colors.white,
                     child: Text(
-                      _ownerList[index]['screenName'].toString()[0],
+                      snapshot.data!.docs[index]['ownerName'].toString()[0],
                     ),
                   ),
                   SizedBox(width: 5),
                   Padding(
                     padding: EdgeInsets.only(top: 10),
                     child: Text(
-                      _ownerList[index]['screenName'].toString(),
+                      snapshot.data!.docs[index]['ownerName'].toString(),
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
               ),
               Text(
-                _ownerList[index]['address'].toString(),
+                snapshot.data!.docs[index]['address'].toString(),
               ),
-              Text(_ownerList[index]['lat'].toString() +
+              Text(snapshot.data!.docs[index]['lat'].toString() +
                   " " +
-                  _ownerList[index]['lng'].toString())
+                  snapshot.data!.docs[index]['lng'].toString())
             ],
           ),
         ),
@@ -118,7 +153,7 @@ class AdminScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOwnerList() {
+  Widget _buildOwnerList(context) {
     return SliverToBoxAdapter(
         child: Column(
       children: [
@@ -132,7 +167,7 @@ class AdminScreen extends StatelessWidget {
             ],
           ),
         ),
-        _showListofOwners()
+        _showListofOwners(context)
       ],
     ));
   }
@@ -168,7 +203,7 @@ class AdminScreen extends StatelessWidget {
                 buildAppbar(),
                 _adminController.index.value == 0
                     ? buildOwnerForm(context)
-                    : _buildOwnerList(),
+                    : _buildOwnerList(context),
                 // _buildOwnerList(),
               ],
             )));

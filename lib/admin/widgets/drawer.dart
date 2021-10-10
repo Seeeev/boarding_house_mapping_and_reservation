@@ -16,7 +16,7 @@ Widget buildDrawer() => ListView(
                         fontSize: 24,
                       )),
                   Text(
-                    'Map & Information System',
+                    'Map & Reservation System',
                     style: TextStyle(color: Colors.white),
                   ),
                 ],

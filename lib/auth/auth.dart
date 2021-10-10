@@ -51,7 +51,7 @@ class AuthScreen extends StatelessWidget {
         onLogin: authUser,
         onSubmitAnimationCompleted: () {
           print('laog laog');
-          print(globals.currentRoute);
+          print(globals.auth.currentUser!.displayName);
           Get.offNamed(globals.currentRoute, parameters: {
             'email': globals.auth.currentUser?.email as String,
             'uid': globals.auth.currentUser!.uid,

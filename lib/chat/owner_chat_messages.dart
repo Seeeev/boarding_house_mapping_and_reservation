@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dash_chat/dash_chat.dart';
@@ -33,6 +34,11 @@ class _ChatMessagesState extends State<ChatMessages> {
   String tenantId = Get.parameters['tenantId']!;
   String displayName = Get.parameters['displayName']!;
 
+// used in random key genarator for sending code to tenants
+  static const _chars =
+      'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+  Random _rnd = Random();
+
   void systemMessage() {
     Timer(Duration(milliseconds: 300), () {
       if (i < 6) {
@@ -62,11 +68,14 @@ class _ChatMessagesState extends State<ChatMessages> {
         .set(message.toJson());
   }
 
+  String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
+      length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+
   void _sendTicket() {
     ChatMessage message = ChatMessage(
       user: user,
       text: """
-      Hi $displayName your ticket # is 'iyrwoerwer'
+      Hi $displayName your ticket # is ${getRandomString(10)}
       Use this as a verification code.""",
       createdAt: DateTime.now(),
     );
@@ -223,9 +232,10 @@ class _ChatMessagesState extends State<ChatMessages> {
         title: Text(displayName),
         actions: [
           InkWell(
-            child: Text('send code'),
+            child: Center(child: Text('Send Code')),
             onTap: () => _sendTicket(),
-          )
+          ),
+          SizedBox(width: 10),
         ],
       ),
       body: _showChatMessage(),

@@ -136,7 +136,7 @@ Future<dynamic> buidBottomSheet(context, boardingHouseDetails) async {
   // get the path to the photos using uid and docId as a path
   firebase_storage.ListResult result = await firebase_storage
       .FirebaseStorage.instance
-      .ref("${boardingHouseDetails['uid']}/${boardingHouseDetails['docId']}")
+      .ref("${boardingHouseDetails['uid']}/${boardingHouseDetails['bldgName']}")
       .listAll();
 
   var photos = [];

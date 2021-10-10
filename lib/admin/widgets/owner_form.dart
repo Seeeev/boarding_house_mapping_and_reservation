@@ -12,6 +12,7 @@ import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:path/path.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:boarding_house_mapping_v2/models/bldg_info.dart';
 
 final _formKey = GlobalKey<FormBuilderState>();
 final _loginFormKey = GlobalKey<FormBuilderState>();
@@ -339,28 +340,48 @@ Widget buildOwnerForm(context) {
                         }
                       }
                       print("Current user: " + '${_auth.currentUser!.uid}');
+
                       // once authenticated send boarding house data to firebase
-                      OwnerInfo ownerInfo = OwnerInfo(
-                          _auth.currentUser!.uid,
-                          '${_auth.currentUser!.displayName}',
-                          _formKey.currentState!.fields['bldgName']!.value,
-                          _formKey.currentState!.fields['address']!.value,
-                          double.parse(
+
+                      // OwnerInfo ownerInfo = OwnerInfo(
+                      //     _auth.currentUser!.uid,
+                      //     '${_auth.currentUser!.displayName}',
+                      //     _formKey.currentState!.fields['bldgName']!.value,
+                      //     _formKey.currentState!.fields['address']!.value,
+                      //     double.parse(
+                      //         _formKey.currentState!.fields['lat']!.value),
+                      //     double.parse(
+                      //         _formKey.currentState!.fields['lng']!.value),
+                      //     _formKey.currentState!.fields['content']!.value);
+
+                      BldgInfo bldgInfo = BldgInfo(
+                          address:
+                              _formKey.currentState!.fields['address']!.value,
+                          bldgName:
+                              _formKey.currentState!.fields['bldgName']!.value,
+                          content:
+                              _formKey.currentState!.fields['content']!.value,
+                          lat: double.parse(
                               _formKey.currentState!.fields['lat']!.value),
-                          double.parse(
+                          lng: double.parse(
                               _formKey.currentState!.fields['lng']!.value),
-                          _formKey.currentState!.fields['content']!.value);
+                          ownerName: '${_auth.currentUser!.displayName}',
+                          uid: _auth.currentUser!.uid);
                       print('uploading data to firebase.....');
 
-                      var docId;
+                      // var docId;
                       // add owners data to the database along with its document id for it is used as marker id
+                      // await FirebaseFirestore.instance
+                      //     .collection(_auth.currentUser!.uid)
+                      //     .add(ownerInfo.getMap())
+                      //     .then((value) {
+                      //   docId = value.id;
+                      //   value.update({'docId': value.id});
+                      // });
+
                       await FirebaseFirestore.instance
-                          .collection(_auth.currentUser!.uid)
-                          .add(ownerInfo.getMap())
-                          .then((value) {
-                        docId = value.id;
-                        value.update({'docId': value.id});
-                      });
+                          .collection('boarding_houses')
+                          .add(bldgInfo.getBldgData());
 
                       // upload photos to firebase storage
                       if (_formKey.currentState!.value['photos'] != null &&
@@ -374,7 +395,9 @@ Widget buildOwnerForm(context) {
                         // await _uploadPhotos(_imgList, _auth.currentUser!.uid,
                         //     _formKey.currentState!.fields['bldgName']!.value);
                         await _uploadPhotos(
-                            _imgList, _auth.currentUser!.uid, docId);
+                            _imgList,
+                            _auth.currentUser!.uid, //changed from docId
+                            _formKey.currentState!.fields['bldgName']!.value);
                       }
                       _adminController.loadingValue('complete');
                       // sign out after creating an owner to prevent bugs

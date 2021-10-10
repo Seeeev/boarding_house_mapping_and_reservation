@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:boarding_house_mapping_v2/globals/gobals.dart' as globals;
 import 'package:get/get.dart';
@@ -24,10 +25,11 @@ Widget buildAppbar() => SliverAppBar(
       actions: [
         PopupMenuButton(
             onSelected: (result) {
-              print(result);
               if (result == 'Logout') {
                 globals.auth.signOut();
                 Get.toNamed('/auth');
+              } else if (result == 'Settings') {
+                // FirebaseFirestore.instance.collection(collectionPath)
               }
             },
             icon: Icon(Icons.settings),

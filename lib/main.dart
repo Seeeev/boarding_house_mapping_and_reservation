@@ -9,6 +9,7 @@ import 'admin/admin.dart';
 import 'auth/auth.dart';
 import 'chat/owner_chat.dart';
 import 'chat/tenant_chat.dart';
+import 'test/test.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,11 +53,12 @@ class MyApp extends StatelessWidget {
                 GetPage(name: '/chat/tenant', page: () => TenantChatScreen()),
                 GetPage(name: '/chat/owner', page: () => OwnerChatScreen()),
                 GetPage(
-                    name: '/chat/owner-messages', page: () => ChatMessages())
+                    name: '/chat/owner-messages', page: () => ChatMessages()),
                 // GetPage(name: '/owner', page: () => OwnerScreen()),
                 // GetPage(name: '/chat', page: () => ChatScreen()),
+                // GetPage(name: '/test', page: () => Test()),
               ],
-              initialRoute: '/chat/owner',
+              initialRoute: '/auth',
             );
           }
           // Otherwise, show something whilst waiting for initialization to complete

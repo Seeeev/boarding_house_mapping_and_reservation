@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 
 class AdminController extends GetxController {
@@ -13,6 +14,8 @@ class AdminController extends GetxController {
   var isLoading = 'none'.obs;
 
   var isPasswordVisible = false.obs;
+
+  var ownerData = [];
 
   void updateIndex(i) {
     index.value = i;
@@ -38,5 +41,12 @@ class AdminController extends GetxController {
 
   void loadingValue(value) {
     isLoading.value = value;
+  }
+
+  @override
+  void onInit() {
+    // TODO: implement onInit
+
+    super.onInit();
   }
 }

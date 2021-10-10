@@ -62,10 +62,13 @@ Future<String?>? authUser(LoginData data) {
                 : globals.currentRoute = '/tenant';
       }
     } on FirebaseAuthException catch (e) {
+      print(e.code);
       if (e.code == 'wrong-password') {
         return 'The password provided is incorrect.';
       } else if (e.code == 'user-not-found') {
         return 'User not found';
+      } else if (e.code == 'network-request-failed') {
+        return 'Please connect to the internet.';
       }
     } catch (e) {
       print(e);

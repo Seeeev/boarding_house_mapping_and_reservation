@@ -243,9 +243,14 @@ class _MyHomePageState extends State<TenantChatScreen> {
                         ChatMessage message =
                             ChatMessage(text: "", user: user, image: url);
 
+                        // FirebaseFirestore.instance
+                        //     .collection(Get.parameters['ownerUid']! +
+                        //         globals.auth.currentUser!.uid)
+                        //     .add(message.toJson());
                         FirebaseFirestore.instance
-                            .collection(Get.parameters['ownerUid']! +
-                                globals.auth.currentUser!.uid)
+                            .collection('messages')
+                            .doc(Get.parameters['ownerUid']!)
+                            .collection(globals.auth.currentUser!.uid)
                             .add(message.toJson());
                       }
                     },

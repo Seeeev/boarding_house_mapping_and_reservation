@@ -19,6 +19,8 @@ class OwnerChatScreen extends StatefulWidget {
 class _MyHomePageState extends State<OwnerChatScreen> {
   final GlobalKey<DashChatState> _chatViewKey = GlobalKey<DashChatState>();
 
+  final _popupMenuContent = ['Logout', 'Settings'];
+
   final ChatUser user = ChatUser(
     name: '${globals.auth.currentUser!.displayName}',
     uid: globals.auth.currentUser!.uid,
@@ -37,8 +39,8 @@ class _MyHomePageState extends State<OwnerChatScreen> {
   List<String> tenantIds = [];
   @override
   void initState() {
-    globals.auth.signInWithEmailAndPassword(
-        email: 'sample_owner@gmail.com', password: '11111111');
+    // globals.auth.signInWithEmailAndPassword(
+    //     email: 'sample_owner@gmail.com', password: '11111111');
 
     super.initState();
   }
@@ -87,6 +89,7 @@ class _MyHomePageState extends State<OwnerChatScreen> {
   }
 
   Widget _showChatList(tenantIds) {
+    print(tenantIds.length);
     return ListView.builder(
         itemCount: tenantIds.length,
         itemBuilder: (BuildContext context, index) {
@@ -112,14 +115,14 @@ class _MyHomePageState extends State<OwnerChatScreen> {
                           backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,
                           child: Text(
-                            tenantIds[0]['displayName'][0],
+                            tenantIds[index]['displayName'][index],
                           ),
                         ),
                         SizedBox(width: 5),
                         Padding(
                           padding: EdgeInsets.only(top: 10),
                           child: Text(
-                            tenantIds[0]['displayName'],
+                            tenantIds[index]['displayName'],
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -141,7 +144,29 @@ class _MyHomePageState extends State<OwnerChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tenant Name(empty)'),
+        title: Text(globals.auth.currentUser!.displayName!),
+        centerTitle: true,
+        actions: [
+          PopupMenuButton(
+              onSelected: (result) {
+                if (result == 'Logout') {
+                  globals.auth.signOut();
+                  Get.toNamed('/auth');
+                } else if (result == 'Settings') {
+                  // FirebaseFirestore.instance.collection(collectionPath)
+                }
+              },
+              icon: Icon(Icons.settings),
+              itemBuilder: ((BuildContext context) {
+                return _popupMenuContent.map((content) {
+                  return PopupMenuItem(
+                    value: content,
+                    child: Text(content),
+                  );
+                }).toList();
+              })),
+          SizedBox(width: 12)
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -171,7 +196,24 @@ class _MyHomePageState extends State<OwnerChatScreen> {
                 return _showChatList(tenantIds);
 
               case ConnectionState.done:
-                var tenantIds = snapshot.data!.docs;
+                // var tenantIds = snapshot.data!.docs;
+                // for (i = 0; i < tenantIds.length; i++) {
+                //   var data = StreamBuilder(
+                //     stream: FirebaseFirestore.instance
+                //         .collection(globals.auth.currentUser!.uid)
+                //         .doc(tenantIds[i]['tenantId'])
+                //         .snapshots(),
+                //     builder: (context, snapshot) {
+                //       if (snapshot.hasError) {
+                //         print('error');
+                //       }
+                //       if (snapshot.connectionState == ConnectionState.waiting)
+                //         print('waiting');
+                //       print(snapshot.data);
+                //       return Container();
+                //     },
+                //   );
+                // }
                 return _showChatList(tenantIds);
             }
           }

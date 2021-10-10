@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:boarding_house_mapping_v2/constants/tenant_constants.dart';
+import 'package:boarding_house_mapping_v2/admin/models/owner_info.dart';
 import 'package:boarding_house_mapping_v2/controllers/tenant_controllers.dart';
 import 'package:boarding_house_mapping_v2/tenant/widgets/bottom_sheet.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -25,10 +27,11 @@ final CameraPosition _kLake = CameraPosition(
 
 final String uid = Get.arguments[0];
 final String screenName = Get.arguments[1];
+// var ownerInfo = [];
 
-var markerId = ownerInfo[0]['markerId'] as String;
-var lat = ownerInfo[0]['lat'] as double;
-var lng = ownerInfo[0]['lng'] as double;
+// var markerId = ownerInfo[0]['markerId'] as String;
+// var lat = ownerInfo[0]['lat'] as double;
+// var lng = ownerInfo[0]['lng'] as double;
 
 // final Marker _parsuMarker = Marker(
 //   markerId: MarkerId(markerId),
@@ -38,62 +41,58 @@ var lng = ownerInfo[0]['lng'] as double;
 // );
 
 final tenantController = Get.put(TenantController());
+CollectionReference uidRef = FirebaseFirestore.instance.collection('owners');
 
-Widget buildMap(context) {
+buildMap(context) {
   final Completer<GoogleMapController> _controller = Completer();
 
-  return GoogleMap(
-    mapType: MapType.hybrid,
-    initialCameraPosition: _parsu,
-    onMapCreated: (GoogleMapController controller) {
-      _controller.complete(controller);
-    },
-    markers: {
-      ...tenantController.ownerInfo.map((e) {
-        return Marker(
-          markerId: MarkerId(e['docId']),
-          position: LatLng(e['lat'], e['lng']),
+  return FutureBuilder<QuerySnapshot>(
+      future: FirebaseFirestore.instance.collection('boarding_houses').get(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return GoogleMap(
+              mapType: MapType.hybrid,
+              initialCameraPosition: _parsu,
+              onMapCreated: (GoogleMapController controller) {
+                _controller.complete(controller);
+              },
+              markers: {
+                ...snapshot.data!.docs.map((e) {
+                  return Marker(
+                    markerId: MarkerId('${e['lat']}${e['lng']}'),
+                    position: LatLng(e['lat'], e['lng']),
+                    onTap: () => buidBottomSheet(context, e),
+                  );
+                }).toList()
+              });
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+        return Center(child: CircularProgressIndicator());
+      });
 
-          // markerId: MarkerId(e['markerId']),
-          // position: LatLng(e['lat'], e['lng']),
-          onTap: () {
-            buidBottomSheet(context, e);
-          },
-        );
-      })
-      // ...ownerInfo.map((e) {
-      //   return Marker(
-      //     markerId: MarkerId('asdasd'),
-      //     position: LatLng(13.697392705935073, 123.48250838055424),
+  // return GoogleMap(
+  //   mapType: MapType.hybrid,
+  //   initialCameraPosition: _parsu,
+  //   onMapCreated: (GoogleMapController controller) {
+  //     _controller.complete(controller);
+  //   },
+  // markers: {
+  //   ...tenantController.ownerInfo.map((e) {
+  //     return Marker(
+  //       markerId: MarkerId(e['docId']),
+  //       position: LatLng(e['lat'], e['lng']),
 
-      //     // markerId: MarkerId(e['markerId']),
-      //     // position: LatLng(e['lat'], e['lng']),
-      //     onTap: () {
-      //       buidBottomSheet(context);
-      //     },
-      //   );
-      // })
-    },
-  );
+  //       // markerId: MarkerId(e['markerId']),
+  //       // position: LatLng(e['lat'], e['lng']),
+  //       onTap: () {
+  //         buidBottomSheet(context, e);
+  //       },
+  //     );
+  //   })
+  // },
+
+  //   markers: _getMarkers(context),
+  // );
 }
-      // floatingActionButton: FloatingActionButton.extended(
-      //   onPressed: () {
-      //     Get.bottomSheet(
-      //       Container(
-      //         height: 100,
-      //         color: Colors.greenAccent,
-      //         child: Text('asdasd'),
-      //       ),
-      //       isDismissible: false,
-      //     );
-      //   },
-      //   label: Text('To the lake!'),
-      //   icon: Icon(Icons.directions_boat),
-      // ),
-
-
-  // Future<void> _goToTheLake() async {
-  //   final GoogleMapController controller = await _controller.future;
-  //   controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
-  // }
-
