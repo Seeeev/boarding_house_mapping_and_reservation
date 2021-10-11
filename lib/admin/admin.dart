@@ -93,13 +93,22 @@ class AdminScreen extends StatelessWidget {
   // }
 
   Widget _showListofOwners(context) {
-    return FutureBuilder<QuerySnapshot>(
-        future: FirebaseFirestore.instance.collection('boarding_houses').get(),
+    return StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('boarding_houses')
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           }
           if (snapshot.connectionState == ConnectionState.done) {
+            return _buildWidget(context, snapshot);
+          }
+          if (snapshot.connectionState == ConnectionState.none) {
+            return Center(
+                child: Text('No landlords are registered at the moment'));
+          }
+          if (snapshot.hasData) {
             return _buildWidget(context, snapshot);
           }
           return Center(child: CircularProgressIndicator());
@@ -115,38 +124,47 @@ class AdminScreen extends StatelessWidget {
       shrinkWrap: true,
       itemCount: snapshot.data!.docs.length,
       itemBuilder: (context, index) => Card(
-        child: Container(
-          padding: EdgeInsets.all(10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    child: Text(
-                      snapshot.data!.docs[index]['ownerName'].toString()[0],
+        child: InkWell(
+          onLongPress: () => print(snapshot.data!.docs[index]['ownerName']),
+          child: Container(
+            padding: EdgeInsets.all(10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      child: Text(
+                        snapshot.data!.docs[index]['ownerName'].toString()[0],
+                      ),
                     ),
-                  ),
-                  SizedBox(width: 5),
-                  Padding(
-                    padding: EdgeInsets.only(top: 10),
-                    child: Text(
-                      snapshot.data!.docs[index]['ownerName'].toString(),
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    SizedBox(width: 5),
+                    Padding(
+                      padding: EdgeInsets.only(top: 5, left: 10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            snapshot.data!.docs[index]['ownerName'].toString(),
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Text(snapshot.data!.docs[index]['bldgName'])
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              Text(
-                snapshot.data!.docs[index]['address'].toString(),
-              ),
-              Text(snapshot.data!.docs[index]['lat'].toString() +
-                  " " +
-                  snapshot.data!.docs[index]['lng'].toString())
-            ],
+                  ],
+                ),
+                Text(
+                  snapshot.data!.docs[index]['address'].toString(),
+                ),
+                Text(snapshot.data!.docs[index]['lat'].toString() +
+                    " " +
+                    snapshot.data!.docs[index]['lng'].toString())
+              ],
+            ),
           ),
         ),
       ),

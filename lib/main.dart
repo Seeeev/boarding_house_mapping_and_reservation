@@ -9,7 +9,6 @@ import 'admin/admin.dart';
 import 'auth/auth.dart';
 import 'chat/owner_chat.dart';
 import 'chat/tenant_chat.dart';
-import 'test/test.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
