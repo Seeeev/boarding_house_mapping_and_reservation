@@ -89,7 +89,6 @@ class _MyHomePageState extends State<OwnerChatScreen> {
   }
 
   Widget _showChatList(tenantIds) {
-    print(tenantIds.length);
     return ListView.builder(
         itemCount: tenantIds.length,
         itemBuilder: (BuildContext context, index) {
@@ -115,7 +114,7 @@ class _MyHomePageState extends State<OwnerChatScreen> {
                           backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,
                           child: Text(
-                            tenantIds[index]['displayName'][index],
+                            tenantIds[index]['displayName'][0],
                           ),
                         ),
                         SizedBox(width: 5),
@@ -128,16 +127,34 @@ class _MyHomePageState extends State<OwnerChatScreen> {
                         ),
                       ],
                     ),
-                    Text(
-                      'asdasda',
-                    ),
-                    Text('asdadsadsad')
+                    _recentChat(tenantIds, index)
                   ],
                 ),
               ),
             ),
           );
         });
+  }
+
+  StreamBuilder _recentChat(tenantIds, index) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('messages')
+          .doc(globals.auth.currentUser!.uid)
+          .collection(tenantIds[index]['tenantId'])
+          .orderBy('createdAt')
+          .limitToLast(1)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.active) {
+          return Text(
+            snapshot.data!.docs[0]['text'],
+            style: TextStyle(color: Colors.grey),
+          );
+        }
+        return CircularProgressIndicator();
+      },
+    );
   }
 
   @override
