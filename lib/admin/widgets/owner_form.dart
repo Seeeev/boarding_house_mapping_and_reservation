@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:boarding_house_mapping_v2/admin/models/owner_info.dart';
 import 'package:boarding_house_mapping_v2/admin/widgets/upload_indicator.dart';
 import 'package:boarding_house_mapping_v2/controllers/admin_controller.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,7 +20,9 @@ final _loginFormKey = GlobalKey<FormBuilderState>();
 final genderOptions = ['Male', 'Female'];
 final _adminController = Get.put(AdminController());
 
-FirebaseAuth _auth = FirebaseAuth.instance;
+// use difference instace of authentication because the current instance is for admin login
+FirebaseApp secondaryApp = Firebase.app('OwnerLogin');
+FirebaseAuth _auth = FirebaseAuth.instanceFor(app: secondaryApp);
 
 void _ownerLogin(context) {
   Get.defaultDialog(
@@ -323,11 +326,12 @@ Widget buildOwnerForm(context) {
                           await _auth.currentUser!.updateDisplayName(_formKey
                               .currentState!.fields['ownerName']!.value);
 
-                          // this line adds the uid of an owner to the database as reference for getting its data
-                          await FirebaseFirestore.instance
-                              .collection('owners')
-                              .add({'uid': _auth.currentUser!.uid}).then(
-                                  (value) => print(value));
+                          // // this line adds the uid of an owner to the database as reference for getting its data
+                          // await FirebaseFirestore.instance
+                          //     .collection('owners')
+                          //     .add({'uid': _auth.currentUser!.uid}).then(
+                          //         (value) => print(value));
+
                           print('account created');
                         } on FirebaseAuthException catch (e) {
                           if (e.code == 'email-already-in-use') {
@@ -339,7 +343,8 @@ Widget buildOwnerForm(context) {
                           }
                         }
                       }
-                      print("Current user: " + '${_auth.currentUser!.uid}');
+                      print("Current user: " +
+                          '${_auth.currentUser!.displayName}');
 
                       // once authenticated send boarding house data to firebase
 
