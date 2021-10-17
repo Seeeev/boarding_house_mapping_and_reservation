@@ -14,17 +14,36 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:path/path.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:boarding_house_mapping_v2/models/bldg_info.dart';
+import 'package:boarding_house_mapping_v2/globals/gobals.dart' as globals;
 
 final _formKey = GlobalKey<FormBuilderState>();
 final _loginFormKey = GlobalKey<FormBuilderState>();
 final genderOptions = ['Male', 'Female'];
 final _adminController = Get.put(AdminController());
 
-// use difference instace of authentication because the current instance is for admin login
-FirebaseApp secondaryApp = Firebase.app('OwnerLogin');
-FirebaseAuth _auth = FirebaseAuth.instanceFor(app: secondaryApp);
+Widget getForm(context) {
+  return SliverToBoxAdapter(
+      child: FutureBuilder<FirebaseApp>(
+    future: globals.app,
+    builder: ((context, snapshot) {
+      if (snapshot.hasError) {
+        print(snapshot.error);
+        print(snapshot.data!.name);
+        // _app = Firebase.initializeApp(
+        //     name: 'OwnerLogin2', options: Firebase.app().options);
+        print(snapshot.error);
+      }
+      if (snapshot.connectionState == ConnectionState.done) {
+        print(snapshot.data!.name);
+        FirebaseAuth _auth = FirebaseAuth.instanceFor(app: snapshot.data!);
+        return buildOwnerForm(context, _auth);
+      }
+      return Center(child: CircularProgressIndicator());
+    }),
+  ));
+}
 
-void _ownerLogin(context) {
+void _ownerLogin(context, _auth) {
   Get.defaultDialog(
     title: 'Login',
     textConfirm: 'Login',
@@ -40,6 +59,7 @@ void _ownerLogin(context) {
                 name: 'email',
                 errorText: 'Email address must be of type owner');
           } else {
+            print('loggin in');
             await _auth.signInWithEmailAndPassword(
                 email: _email, password: _pass);
             print('sign in complete');
@@ -143,305 +163,609 @@ Future<List<String>> _uploadPhotos(List<File> photos, uid, bldgName) async {
   return _downloadUrls;
 }
 
-Widget buildOwnerForm(context) {
-  return SliverToBoxAdapter(
-    child: Column(
-      children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: FormBuilder(
-            key: _formKey,
-            // autovalidateMode: AutovalidateMode.on,
-            child: Column(
-              children: <Widget>[
-                Obx(
-                  () => FormBuilderTextField(
-                    name: 'ownerName',
-                    // valueTransformer: (value) {
-                    //   if (_auth.currentUser != null) {
-                    //     return _adminController.ownerName.value;
-                    //   } else {
-                    //     print('Email address is empty' + value!);
-                    //     return value;
-                    //   }
-                    // },
-                    enabled: _adminController.isAuthFormEnabled.value,
-                    validator: FormBuilderValidators.compose([
-                      FormBuilderValidators.required(context),
-                    ]),
-                    decoration: InputDecoration(labelText: "Owner's Full Name"),
-                  ),
+// Widget buildOwnerForm(context) {
+//   return SliverToBoxAdapter(
+//     child: Column(
+//       children: <Widget>[
+//         Padding(
+//           padding: const EdgeInsets.all(8.0),
+//           child: FormBuilder(
+//             key: _formKey,
+//             // autovalidateMode: AutovalidateMode.on,
+//             child: Column(
+//               children: <Widget>[
+//                 Obx(
+//                   () => FormBuilderTextField(
+//                     name: 'ownerName',
+//                     // valueTransformer: (value) {
+//                     //   if (_auth.currentUser != null) {
+//                     //     return _adminController.ownerName.value;
+//                     //   } else {
+//                     //     print('Email address is empty' + value!);
+//                     //     return value;
+//                     //   }
+//                     // },
+//                     enabled: _adminController.isAuthFormEnabled.value,
+//                     validator: FormBuilderValidators.compose([
+//                       FormBuilderValidators.required(context),
+//                     ]),
+//                     decoration: InputDecoration(labelText: "Owner's Full Name"),
+//                   ),
+//                 ),
+//                 Obx(() => FormBuilderTextField(
+//                       name: 'emailAddress',
+//                       enabled: _adminController.isAuthFormEnabled.value,
+//                       // valueTransformer: (value) {
+//                       //   if (_auth.currentUser != null) {
+//                       //     // print(_auth.currentUser?.email as String);
+//                       //     // print('may naka login');
+//                       //     return _adminController.ownerEmail.value;
+//                       //   } else {
+//                       //     return value;
+//                       //   }
+//                       // },
+//                       keyboardType: TextInputType.emailAddress,
+//                       validator: FormBuilderValidators.compose([
+//                         FormBuilderValidators.required(context),
+//                         FormBuilderValidators.email(context)
+//                       ]),
+//                       decoration: InputDecoration(labelText: 'Email Address'),
+//                     )),
+//                 Obx(
+//                   () => FormBuilderTextField(
+//                     name: 'ownerPassword',
+//                     // valueTransformer: (value) {
+//                     //   if (_auth.currull) {
+//                     //     return _adminController.ownerPass.value;
+//                     //   } else {
+//                     //     return value;
+//                     //   }
+//                     // },
+//                     obscureText: !_adminController.isPasswordVisible.value,
+//                     enableSuggestions: false,
+//                     autocorrect: false,
+//                     enabled: _adminController.isAuthFormEnabled.value,
+//                     validator: FormBuilderValidators.compose([
+//                       FormBuilderValidators.required(context),
+//                       FormBuilderValidators.minLength(context, 8)
+//                     ]),
+//                     decoration: InputDecoration(
+//                       labelText: 'Password',
+//                       suffixIcon: IconButton(
+//                         onPressed: () {
+//                           _adminController.passwordVisible();
+//                           print(_adminController.isPasswordVisible);
+//                         },
+//                         icon: Icon(
+//                           _adminController.isPasswordVisible.value
+//                               ? Icons.visibility
+//                               : Icons.visibility_off,
+//                           color: Colors.black,
+//                         ),
+//                       ),
+//                     ),
+//                   ),
+//                 ),
+//                 FormBuilderTextField(
+//                   name: 'bldgName',
+//                   keyboardType: TextInputType.text,
+//                   textCapitalization: TextCapitalization.sentences,
+//                   validator: FormBuilderValidators.compose([
+//                     FormBuilderValidators.required(context),
+//                   ]),
+//                   decoration: InputDecoration(labelText: 'Building Name'),
+//                 ),
+//                 FormBuilderTextField(
+//                   name: 'address',
+//                   keyboardType: TextInputType.text,
+//                   textCapitalization: TextCapitalization.sentences,
+//                   validator: FormBuilderValidators.compose([
+//                     FormBuilderValidators.required(context),
+//                   ]),
+//                   decoration: InputDecoration(labelText: 'Building Address'),
+//                 ),
+//                 FormBuilderTextField(
+//                   name: 'lat',
+//                   keyboardType: TextInputType.number,
+//                   validator: FormBuilderValidators.compose([
+//                     FormBuilderValidators.required(context),
+//                   ]),
+//                   decoration: InputDecoration(labelText: 'Latitude'),
+//                 ),
+//                 FormBuilderTextField(
+//                   name: 'lng',
+//                   keyboardType: TextInputType.number,
+//                   validator: FormBuilderValidators.compose([
+//                     FormBuilderValidators.required(context),
+//                   ]),
+//                   decoration: InputDecoration(labelText: 'Longitude'),
+//                 ),
+//                 Container(
+//                   height: 300,
+//                   child: Card(
+//                     child: FormBuilderTextField(
+//                       name: 'content',
+//                       maxLines: null,
+//                       textCapitalization: TextCapitalization.sentences,
+//                       keyboardType: TextInputType.multiline,
+//                       decoration: InputDecoration.collapsed(
+//                           hintText: 'Information about the business...'),
+//                     ),
+//                   ),
+//                 ),
+//                 FormBuilderImagePicker(
+//                   name: 'photos',
+//                   imageQuality: 80,
+//                   decoration: const InputDecoration(labelText: 'Pick Photos'),
+//                   maxImages: 10,
+//                 ),
+//               ],
+//             ),
+//           ),
+//         ),
+//         _adminController.isLoading.value == 'loading'
+//             ? uploadingIndicator()
+//             : _adminController.isLoading.value == 'complete'
+//                 ? uploadCompleteInicator()
+//                 : Container(),
+//         Row(
+//           children: <Widget>[
+//             Expanded(
+//               child: MaterialButton(
+//                 color: Theme.of(context).accentColor,
+//                 child: Text(
+//                   "Submit",
+//                   style: TextStyle(color: Colors.white),
+//                 ),
+//                 onPressed: () async {
+//                   // dismiss onscreen keyboard
+//                   FocusScope.of(context).unfocus();
+
+//                   if (_formKey.currentState!.saveAndValidate()) {
+//                     // print(_formKey.currentState!.value['emailAddress']);
+//                     if (!_formKey.currentState!.value['emailAddress']
+//                         .contains('_owner@')) {
+//                       _formKey.currentState!.invalidateField(
+//                           name: 'emailAddress',
+//                           errorText:
+//                               'Email address must contain "_owner@" in order to be identified \nby the system as an owner, eg. sample_user_owner@gmail.com');
+//                     } else {
+//                       // create owner if not logged in and check if email exist
+//                       // print(_auth.currentUser!.uid);
+
+//                       // show progress indicator
+//                       _adminController.loadingValue('loading');
+//                       if (_auth.currentUser == null) {
+//                         try {
+//                           print('creating account...');
+//                           await _auth.createUserWithEmailAndPassword(
+//                               email:
+//                                   _formKey.currentState!.value['emailAddress'],
+//                               password: _formKey
+//                                   .currentState!.value['ownerPassword']);
+//                           await _auth.currentUser!.updateDisplayName(_formKey
+//                               .currentState!.fields['ownerName']!.value);
+
+//                           // // this line adds the uid of an owner to the database as reference for getting its data
+//                           // await FirebaseFirestore.instance
+//                           //     .collection('owners')
+//                           //     .add({'uid': _auth.currentUser!.uid}).then(
+//                           //         (value) => print(value));
+
+//                           print('account created');
+//                         } on FirebaseAuthException catch (e) {
+//                           if (e.code == 'email-already-in-use') {
+//                             _formKey.currentState!.invalidateField(
+//                                 name: 'emailAddress',
+//                                 errorText: 'Email address already taken');
+//                             // called return to prevent executing the rest of the code if email is taken
+//                             return;
+//                           }
+//                         }
+//                       }
+//                       print("Current user: " +
+//                           '${_auth.currentUser!.displayName}');
+
+//                       // once authenticated send boarding house data to firebase
+
+//                       // OwnerInfo ownerInfo = OwnerInfo(
+//                       //     _auth.currentUser!.uid,
+//                       //     '${_auth.currentUser!.displayName}',
+//                       //     _formKey.currentState!.fields['bldgName']!.value,
+//                       //     _formKey.currentState!.fields['address']!.value,
+//                       //     double.parse(
+//                       //         _formKey.currentState!.fields['lat']!.value),
+//                       //     double.parse(
+//                       //         _formKey.currentState!.fields['lng']!.value),
+//                       //     _formKey.currentState!.fields['content']!.value);
+
+//                       BldgInfo bldgInfo = BldgInfo(
+//                           address:
+//                               _formKey.currentState!.fields['address']!.value,
+//                           bldgName:
+//                               _formKey.currentState!.fields['bldgName']!.value,
+//                           content:
+//                               _formKey.currentState!.fields['content']!.value,
+//                           lat: double.parse(
+//                               _formKey.currentState!.fields['lat']!.value),
+//                           lng: double.parse(
+//                               _formKey.currentState!.fields['lng']!.value),
+//                           ownerName: '${_auth.currentUser!.displayName}',
+//                           uid: _auth.currentUser!.uid);
+//                       print('uploading data to firebase.....');
+
+//                       // var docId;
+//                       // add owners data to the database along with its document id for it is used as marker id
+//                       // await FirebaseFirestore.instance
+//                       //     .collection(_auth.currentUser!.uid)
+//                       //     .add(ownerInfo.getMap())
+//                       //     .then((value) {
+//                       //   docId = value.id;
+//                       //   value.update({'docId': value.id});
+//                       // });
+
+//                       await FirebaseFirestore.instance
+//                           .collection('boarding_houses')
+//                           .add(bldgInfo.getBldgData());
+
+//                       // upload photos to firebase storage
+//                       if (_formKey.currentState!.value['photos'] != null &&
+//                           _auth.currentUser != null) {
+//                         List<File>? _imgList = [];
+//                         var _imgPaths = _formKey.currentState!.value['photos'];
+//                         for (var _path in _imgPaths) {
+//                           _imgList.add(_path);
+//                         }
+//                         print('uploading photos to firebase....');
+//                         // await _uploadPhotos(_imgList, _auth.currentUser!.uid,
+//                         //     _formKey.currentState!.fields['bldgName']!.value);
+//                         await _uploadPhotos(
+//                             _imgList,
+//                             _auth.currentUser!.uid, //changed from docId
+//                             _formKey.currentState!.fields['bldgName']!.value);
+//                       }
+//                       _adminController.loadingValue('complete');
+//                       // sign out after creating an owner to prevent bugs
+//                       await _auth.signOut();
+//                       _adminController.enableAuthForm();
+//                       _formKey.currentState!.reset();
+//                     }
+//                   }
+//                 },
+//               ),
+//             ),
+//             SizedBox(width: 20),
+//             Expanded(
+//               child: MaterialButton(
+//                 color: Theme.of(context).accentColor,
+//                 child: Text(
+//                   "Reset",
+//                   style: TextStyle(color: Colors.white),
+//                 ),
+//                 onPressed: () {
+//                   _formKey.currentState!.reset();
+//                   _adminController.loadingValue('none');
+//                   _auth.signOut();
+//                   _adminController.enableAuthForm();
+//                 },
+//               ),
+//             ),
+//           ],
+//         ),
+//         InkWell(
+//           child: TextButton(
+//             onPressed: () {
+//               _ownerLogin(context);
+//             },
+//             style: TextButton.styleFrom(primary: Colors.black),
+//             child: Text('Login to an existing owner account'),
+//           ),
+//         ),
+//       ],
+//     ),
+//   );
+
+Widget buildOwnerForm(context, _auth) {
+  return Column(
+    children: <Widget>[
+      Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: FormBuilder(
+          key: _formKey,
+          // autovalidateMode: AutovalidateMode.on,
+          child: Column(
+            children: <Widget>[
+              Obx(
+                () => FormBuilderTextField(
+                  name: 'ownerName',
+                  // valueTransformer: (value) {
+                  //   if (_auth.currentUser != null) {
+                  //     return _adminController.ownerName.value;
+                  //   } else {
+                  //     print('Email address is empty' + value!);
+                  //     return value;
+                  //   }
+                  // },
+                  enabled: _adminController.isAuthFormEnabled.value,
+                  validator: FormBuilderValidators.compose([
+                    FormBuilderValidators.required(context),
+                  ]),
+                  decoration: InputDecoration(labelText: "Owner's Full Name"),
                 ),
-                Obx(() => FormBuilderTextField(
-                      name: 'emailAddress',
-                      enabled: _adminController.isAuthFormEnabled.value,
-                      // valueTransformer: (value) {
-                      //   if (_auth.currentUser != null) {
-                      //     // print(_auth.currentUser?.email as String);
-                      //     // print('may naka login');
-                      //     return _adminController.ownerEmail.value;
-                      //   } else {
-                      //     return value;
-                      //   }
-                      // },
-                      keyboardType: TextInputType.emailAddress,
-                      validator: FormBuilderValidators.compose([
-                        FormBuilderValidators.required(context),
-                        FormBuilderValidators.email(context)
-                      ]),
-                      decoration: InputDecoration(labelText: 'Email Address'),
-                    )),
-                Obx(
-                  () => FormBuilderTextField(
-                    name: 'ownerPassword',
+              ),
+              Obx(() => FormBuilderTextField(
+                    name: 'emailAddress',
+                    enabled: _adminController.isAuthFormEnabled.value,
                     // valueTransformer: (value) {
                     //   if (_auth.currentUser != null) {
-                    //     return _adminController.ownerPass.value;
+                    //     // print(_auth.currentUser?.email as String);
+                    //     // print('may naka login');
+                    //     return _adminController.ownerEmail.value;
                     //   } else {
                     //     return value;
                     //   }
                     // },
-                    obscureText: !_adminController.isPasswordVisible.value,
-                    enableSuggestions: false,
-                    autocorrect: false,
-                    enabled: _adminController.isAuthFormEnabled.value,
+                    keyboardType: TextInputType.emailAddress,
                     validator: FormBuilderValidators.compose([
                       FormBuilderValidators.required(context),
-                      FormBuilderValidators.minLength(context, 8)
+                      FormBuilderValidators.email(context)
                     ]),
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      suffixIcon: IconButton(
-                        onPressed: () {
-                          _adminController.passwordVisible();
-                          print(_adminController.isPasswordVisible);
-                        },
-                        icon: Icon(
-                          _adminController.isPasswordVisible.value
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                          color: Colors.black,
-                        ),
+                    decoration: InputDecoration(labelText: 'Email Address'),
+                  )),
+              Obx(
+                () => FormBuilderTextField(
+                  name: 'ownerPassword',
+                  // valueTransformer: (value) {
+                  //   if (_auth.currentUser != null) {
+                  //     return _adminController.ownerPass.value;
+                  //   } else {
+                  //     return value;
+                  //   }
+                  // },
+                  obscureText: !_adminController.isPasswordVisible.value,
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  enabled: _adminController.isAuthFormEnabled.value,
+                  validator: FormBuilderValidators.compose([
+                    FormBuilderValidators.required(context),
+                    FormBuilderValidators.minLength(context, 8)
+                  ]),
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        _adminController.passwordVisible();
+                        print(_adminController.isPasswordVisible);
+                      },
+                      icon: Icon(
+                        _adminController.isPasswordVisible.value
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                        color: Colors.black,
                       ),
                     ),
                   ),
                 ),
-                FormBuilderTextField(
-                  name: 'bldgName',
-                  keyboardType: TextInputType.text,
-                  textCapitalization: TextCapitalization.sentences,
-                  validator: FormBuilderValidators.compose([
-                    FormBuilderValidators.required(context),
-                  ]),
-                  decoration: InputDecoration(labelText: 'Building Name'),
-                ),
-                FormBuilderTextField(
-                  name: 'address',
-                  keyboardType: TextInputType.text,
-                  textCapitalization: TextCapitalization.sentences,
-                  validator: FormBuilderValidators.compose([
-                    FormBuilderValidators.required(context),
-                  ]),
-                  decoration: InputDecoration(labelText: 'Building Address'),
-                ),
-                FormBuilderTextField(
-                  name: 'lat',
-                  keyboardType: TextInputType.number,
-                  validator: FormBuilderValidators.compose([
-                    FormBuilderValidators.required(context),
-                  ]),
-                  decoration: InputDecoration(labelText: 'Latitude'),
-                ),
-                FormBuilderTextField(
-                  name: 'lng',
-                  keyboardType: TextInputType.number,
-                  validator: FormBuilderValidators.compose([
-                    FormBuilderValidators.required(context),
-                  ]),
-                  decoration: InputDecoration(labelText: 'Longitude'),
-                ),
-                Container(
-                  height: 300,
-                  child: Card(
-                    child: FormBuilderTextField(
-                      name: 'content',
-                      maxLines: null,
-                      textCapitalization: TextCapitalization.sentences,
-                      keyboardType: TextInputType.multiline,
-                      decoration: InputDecoration.collapsed(
-                          hintText: 'Information about the business...'),
-                    ),
+              ),
+              FormBuilderTextField(
+                name: 'bldgName',
+                keyboardType: TextInputType.text,
+                textCapitalization: TextCapitalization.sentences,
+                validator: FormBuilderValidators.compose([
+                  FormBuilderValidators.required(context),
+                ]),
+                decoration: InputDecoration(labelText: 'Building Name'),
+              ),
+              FormBuilderTextField(
+                name: 'address',
+                keyboardType: TextInputType.text,
+                textCapitalization: TextCapitalization.sentences,
+                validator: FormBuilderValidators.compose([
+                  FormBuilderValidators.required(context),
+                ]),
+                decoration: InputDecoration(labelText: 'Building Address'),
+              ),
+              FormBuilderTextField(
+                name: 'lat',
+                keyboardType: TextInputType.number,
+                validator: FormBuilderValidators.compose([
+                  FormBuilderValidators.required(context),
+                ]),
+                decoration: InputDecoration(labelText: 'Latitude'),
+              ),
+              FormBuilderTextField(
+                name: 'lng',
+                keyboardType: TextInputType.number,
+                validator: FormBuilderValidators.compose([
+                  FormBuilderValidators.required(context),
+                ]),
+                decoration: InputDecoration(labelText: 'Longitude'),
+              ),
+              Container(
+                height: 300,
+                child: Card(
+                  child: FormBuilderTextField(
+                    name: 'content',
+                    maxLines: null,
+                    textCapitalization: TextCapitalization.sentences,
+                    keyboardType: TextInputType.multiline,
+                    decoration: InputDecoration.collapsed(
+                        hintText: 'Information about the business...'),
                   ),
                 ),
-                FormBuilderImagePicker(
-                  name: 'photos',
-                  imageQuality: 80,
-                  decoration: const InputDecoration(labelText: 'Pick Photos'),
-                  maxImages: 10,
-                ),
-              ],
-            ),
+              ),
+              FormBuilderImagePicker(
+                name: 'photos',
+                imageQuality: 80,
+                decoration: const InputDecoration(labelText: 'Pick Photos'),
+                maxImages: 10,
+              ),
+            ],
           ),
         ),
-        _adminController.isLoading.value == 'loading'
-            ? uploadingIndicator()
-            : _adminController.isLoading.value == 'complete'
-                ? uploadCompleteInicator()
-                : Container(),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: MaterialButton(
-                color: Theme.of(context).accentColor,
-                child: Text(
-                  "Submit",
-                  style: TextStyle(color: Colors.white),
-                ),
-                onPressed: () async {
-                  // dismiss onscreen keyboard
-                  FocusScope.of(context).unfocus();
+      ),
+      Obx(
+        () => Container(
+          child: _adminController.isLoading.value == 'loading'
+              ? uploadingIndicator()
+              : _adminController.isLoading.value == 'complete'
+                  ? uploadCompleteIndicator()
+                  : Container(),
+        ),
+      ),
+      Row(
+        children: <Widget>[
+          Expanded(
+            child: MaterialButton(
+              color: Theme.of(context).accentColor,
+              child: Text(
+                "Submit",
+                style: TextStyle(color: Colors.white),
+              ),
+              onPressed: () async {
+                // dismiss onscreen keyboard
+                FocusScope.of(context).unfocus();
 
-                  if (_formKey.currentState!.saveAndValidate()) {
-                    // print(_formKey.currentState!.value['emailAddress']);
-                    if (!_formKey.currentState!.value['emailAddress']
-                        .contains('_owner@')) {
-                      _formKey.currentState!.invalidateField(
-                          name: 'emailAddress',
-                          errorText:
-                              'Email address must contain "_owner@" in order to be identified \nby the system as an owner, eg. sample_user_owner@gmail.com');
-                    } else {
-                      // create owner if not logged in and check if email exist
-                      // print(_auth.currentUser!.uid);
+                if (_formKey.currentState!.saveAndValidate()) {
+                  // print(_formKey.currentState!.value['emailAddress']);
+                  if (!_formKey.currentState!.value['emailAddress']
+                      .contains('_owner@')) {
+                    _formKey.currentState!.invalidateField(
+                        name: 'emailAddress',
+                        errorText:
+                            'Email address must contain "_owner@" in order to be identified \nby the system as an owner, eg. sample_user_owner@gmail.com');
+                  } else {
+                    // create owner if not logged in and check if email exist
+                    // print(_auth.currentUser!.uid);
 
-                      // show progress indicator
-                      _adminController.loadingValue('loading');
-                      if (_auth.currentUser == null) {
-                        try {
-                          print('creating account...');
-                          await _auth.createUserWithEmailAndPassword(
-                              email:
-                                  _formKey.currentState!.value['emailAddress'],
-                              password: _formKey
-                                  .currentState!.value['ownerPassword']);
-                          await _auth.currentUser!.updateDisplayName(_formKey
-                              .currentState!.fields['ownerName']!.value);
+                    // show progress indicator
+                    _adminController.loadingValue('loading');
+                    if (_auth.currentUser == null) {
+                      try {
+                        print('creating account...');
+                        await _auth.createUserWithEmailAndPassword(
+                            email: _formKey.currentState!.value['emailAddress'],
+                            password:
+                                _formKey.currentState!.value['ownerPassword']);
+                        await _auth.currentUser!.updateDisplayName(
+                            _formKey.currentState!.fields['ownerName']!.value);
 
-                          // // this line adds the uid of an owner to the database as reference for getting its data
-                          // await FirebaseFirestore.instance
-                          //     .collection('owners')
-                          //     .add({'uid': _auth.currentUser!.uid}).then(
-                          //         (value) => print(value));
+                        // // this line adds the uid of an owner to the database as reference for getting its data
+                        // await FirebaseFirestore.instance
+                        //     .collection('owners')
+                        //     .add({'uid': _auth.currentUser!.uid}).then(
+                        //         (value) => print(value));
 
-                          print('account created');
-                        } on FirebaseAuthException catch (e) {
-                          if (e.code == 'email-already-in-use') {
-                            _formKey.currentState!.invalidateField(
-                                name: 'emailAddress',
-                                errorText: 'Email address already taken');
-                            // called return to prevent executing the rest of the code if email is taken
-                            return;
-                          }
+                        print('account created');
+                      } on FirebaseAuthException catch (e) {
+                        if (e.code == 'email-already-in-use') {
+                          _formKey.currentState!.invalidateField(
+                              name: 'emailAddress',
+                              errorText: 'Email address already taken');
+                          // called return to prevent executing the rest of the code if email is taken
+                          return;
                         }
                       }
-                      print("Current user: " +
-                          '${_auth.currentUser!.displayName}');
-
-                      // once authenticated send boarding house data to firebase
-
-                      // OwnerInfo ownerInfo = OwnerInfo(
-                      //     _auth.currentUser!.uid,
-                      //     '${_auth.currentUser!.displayName}',
-                      //     _formKey.currentState!.fields['bldgName']!.value,
-                      //     _formKey.currentState!.fields['address']!.value,
-                      //     double.parse(
-                      //         _formKey.currentState!.fields['lat']!.value),
-                      //     double.parse(
-                      //         _formKey.currentState!.fields['lng']!.value),
-                      //     _formKey.currentState!.fields['content']!.value);
-
-                      BldgInfo bldgInfo = BldgInfo(
-                          address:
-                              _formKey.currentState!.fields['address']!.value,
-                          bldgName:
-                              _formKey.currentState!.fields['bldgName']!.value,
-                          content:
-                              _formKey.currentState!.fields['content']!.value,
-                          lat: double.parse(
-                              _formKey.currentState!.fields['lat']!.value),
-                          lng: double.parse(
-                              _formKey.currentState!.fields['lng']!.value),
-                          ownerName: '${_auth.currentUser!.displayName}',
-                          uid: _auth.currentUser!.uid);
-                      print('uploading data to firebase.....');
-
-                      // var docId;
-                      // add owners data to the database along with its document id for it is used as marker id
-                      // await FirebaseFirestore.instance
-                      //     .collection(_auth.currentUser!.uid)
-                      //     .add(ownerInfo.getMap())
-                      //     .then((value) {
-                      //   docId = value.id;
-                      //   value.update({'docId': value.id});
-                      // });
-
-                      await FirebaseFirestore.instance
-                          .collection('boarding_houses')
-                          .add(bldgInfo.getBldgData());
-
-                      // upload photos to firebase storage
-                      if (_formKey.currentState!.value['photos'] != null &&
-                          _auth.currentUser != null) {
-                        List<File>? _imgList = [];
-                        var _imgPaths = _formKey.currentState!.value['photos'];
-                        for (var _path in _imgPaths) {
-                          _imgList.add(_path);
-                        }
-                        print('uploading photos to firebase....');
-                        // await _uploadPhotos(_imgList, _auth.currentUser!.uid,
-                        //     _formKey.currentState!.fields['bldgName']!.value);
-                        await _uploadPhotos(
-                            _imgList,
-                            _auth.currentUser!.uid, //changed from docId
-                            _formKey.currentState!.fields['bldgName']!.value);
-                      }
-                      _adminController.loadingValue('complete');
-                      // sign out after creating an owner to prevent bugs
-                      await _auth.signOut();
-                      _adminController.enableAuthForm();
-                      _formKey.currentState!.reset();
                     }
+                    print(
+                        "Current user: " + '${_auth.currentUser!.displayName}');
+
+                    // once authenticated send boarding house data to firebase
+
+                    // OwnerInfo ownerInfo = OwnerInfo(
+                    //     _auth.currentUser!.uid,
+                    //     '${_auth.currentUser!.displayName}',
+                    //     _formKey.currentState!.fields['bldgName']!.value,
+                    //     _formKey.currentState!.fields['address']!.value,
+                    //     double.parse(
+                    //         _formKey.currentState!.fields['lat']!.value),
+                    //     double.parse(
+                    //         _formKey.currentState!.fields['lng']!.value),
+                    //     _formKey.currentState!.fields['content']!.value);
+
+                    BldgInfo bldgInfo = BldgInfo(
+                        address:
+                            _formKey.currentState!.fields['address']!.value,
+                        bldgName:
+                            _formKey.currentState!.fields['bldgName']!.value,
+                        content:
+                            _formKey.currentState!.fields['content']!.value,
+                        lat: double.parse(
+                            _formKey.currentState!.fields['lat']!.value),
+                        lng: double.parse(
+                            _formKey.currentState!.fields['lng']!.value),
+                        ownerName: '${_auth.currentUser!.displayName}',
+                        uid: _auth.currentUser!.uid);
+                    print('uploading data to firebase.....');
+
+                    // var docId;
+                    // add owners data to the database along with its document id for it is used as marker id
+                    // await FirebaseFirestore.instance
+                    //     .collection(_auth.currentUser!.uid)
+                    //     .add(ownerInfo.getMap())
+                    //     .then((value) {
+                    //   docId = value.id;
+                    //   value.update({'docId': value.id});
+                    // });
+
+                    await FirebaseFirestore.instance
+                        .collection('boarding_houses')
+                        .add(bldgInfo.getBldgData());
+
+                    // upload photos to firebase storage
+                    if (_formKey.currentState!.value['photos'] != null &&
+                        _auth.currentUser != null) {
+                      List<File>? _imgList = [];
+                      var _imgPaths = _formKey.currentState!.value['photos'];
+                      for (var _path in _imgPaths) {
+                        _imgList.add(_path);
+                      }
+                      print('uploading photos to firebase....');
+                      // await _uploadPhotos(_imgList, _auth.currentUser!.uid,
+                      //     _formKey.currentState!.fields['bldgName']!.value);
+                      await _uploadPhotos(
+                          _imgList,
+                          _auth.currentUser!.uid, //changed from docId
+                          _formKey.currentState!.fields['bldgName']!.value);
+                    }
+
+                    // sign out after creating an owner to prevent bugs
+                    await _auth.signOut();
+                    _adminController.enableAuthForm();
+                    _formKey.currentState!.reset();
+                    _adminController.loadingValue('complete');
                   }
-                },
-              ),
+                }
+              },
             ),
-            SizedBox(width: 20),
-            Expanded(
-              child: MaterialButton(
-                color: Theme.of(context).accentColor,
-                child: Text(
-                  "Reset",
-                  style: TextStyle(color: Colors.white),
-                ),
-                onPressed: () {
-                  _formKey.currentState!.reset();
-                  _adminController.loadingValue('none');
-                  _auth.signOut();
-                  _adminController.enableAuthForm();
-                },
-              ),
-            ),
-          ],
-        ),
-        InkWell(
-          child: TextButton(
-            onPressed: () {
-              _ownerLogin(context);
-            },
-            style: TextButton.styleFrom(primary: Colors.black),
-            child: Text('Login to an existing owner account'),
           ),
+          SizedBox(width: 20),
+          Expanded(
+            child: MaterialButton(
+              color: Theme.of(context).accentColor,
+              child: Text(
+                "Reset",
+                style: TextStyle(color: Colors.white),
+              ),
+              onPressed: () {
+                _formKey.currentState!.reset();
+                _adminController.loadingValue('none');
+                _auth.signOut();
+                _adminController.enableAuthForm();
+              },
+            ),
+          ),
+        ],
+      ),
+      InkWell(
+        child: TextButton(
+          onPressed: () {
+            _ownerLogin(context, _auth);
+          },
+          style: TextButton.styleFrom(primary: Colors.black),
+          child: Text('Login to an existing owner account'),
         ),
-      ],
-    ),
+      ),
+    ],
   );
 }

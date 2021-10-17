@@ -5,6 +5,7 @@ import 'package:boarding_house_mapping_v2/controllers/admin_controller.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:boarding_house_mapping_v2/globals/gobals.dart' as globals;
@@ -220,7 +221,8 @@ class AdminScreen extends StatelessWidget {
               slivers: [
                 buildAppbar(),
                 _adminController.index.value == 0
-                    ? buildOwnerForm(context)
+                    // ? buildOwnerForm(context)
+                    ? getForm(context)
                     : _buildOwnerList(context),
                 // _buildOwnerList(),
               ],

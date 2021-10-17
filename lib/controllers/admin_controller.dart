@@ -11,7 +11,7 @@ class AdminController extends GetxController {
   var ownerEmail = "Email Address".obs;
   var ownerPass = "Password".obs;
 
-  var isLoading = 'none'.obs;
+  RxString isLoading = 'none'.obs;
 
   var isPasswordVisible = false.obs;
 
@@ -46,7 +46,6 @@ class AdminController extends GetxController {
   @override
   void onInit() {
     // TODO: implement onInit
-
     super.onInit();
   }
 }

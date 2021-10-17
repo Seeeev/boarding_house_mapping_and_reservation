@@ -1,10 +1,11 @@
+import 'package:boarding_house_mapping_v2/controllers/admin_controller.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:boarding_house_mapping_v2/globals/gobals.dart' as globals;
 import 'package:get/get.dart';
 
 final _popupMenuContent = ['Logout', 'Settings'];
-
+final _adminController = Get.put(AdminController());
 Widget buildAppbar() => SliverAppBar(
       iconTheme: IconThemeData(color: Colors.white),
       backgroundColor: Colors.black,
@@ -27,7 +28,8 @@ Widget buildAppbar() => SliverAppBar(
             onSelected: (result) {
               if (result == 'Logout') {
                 globals.auth.signOut();
-                Get.toNamed('/auth');
+                _adminController.updateIndex(0);
+                Get.offNamed('/auth');
               } else if (result == 'Settings') {
                 // FirebaseFirestore.instance.collection(collectionPath)
               }

@@ -17,7 +17,7 @@ Widget uploadingIndicator() {
   );
 }
 
-Widget uploadCompleteInicator() {
+Widget uploadCompleteIndicator() {
   return Container(
     child: Row(
       mainAxisAlignment: MainAxisAlignment.center,
