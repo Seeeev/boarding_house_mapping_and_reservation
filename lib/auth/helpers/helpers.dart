@@ -1,8 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_login/flutter_login.dart';
 import 'package:boarding_house_mapping_v2/globals/gobals.dart' as globals;
-import 'package:boarding_house_mapping_v2/tenant/tenant.dart';
-import 'package:get/get.dart';
 
 Future<String?>? authUserSignUp(LoginData data) async {
   try {

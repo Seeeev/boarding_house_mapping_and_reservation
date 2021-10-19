@@ -1,13 +1,14 @@
+import 'package:boarding_house_mapping_v2/models/feedback.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
+
 import 'package:dash_chat/dash_chat.dart';
+import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:rating_dialog/rating_dialog.dart';
 
 import 'package:boarding_house_mapping_v2/globals/gobals.dart' as globals;
 
@@ -19,7 +20,9 @@ class OwnerChatScreen extends StatefulWidget {
 class _MyHomePageState extends State<OwnerChatScreen> {
   final GlobalKey<DashChatState> _chatViewKey = GlobalKey<DashChatState>();
 
-  final _popupMenuContent = ['Logout', 'Settings'];
+  final _formKey = GlobalKey<FormBuilderState>();
+
+  final _popupMenuContent = ['Logout', 'Feedback', 'Settings'];
 
   final ChatUser user = ChatUser(
     name: '${globals.auth.currentUser!.displayName}',
@@ -157,6 +160,41 @@ class _MyHomePageState extends State<OwnerChatScreen> {
     );
   }
 
+  void _showDialog() {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return RatingDialog(
+            title: "Goa Boarding House Mapping and Reservation System",
+            commentHint: 'What do you think about our app?',
+            image: Image.asset(
+              'assets/logo/logo.png',
+              color: Colors.blue,
+            ),
+            submitButton: 'Submit',
+            onSubmitted: (response) async {
+              String feedback = response.comment;
+              int rating = response.rating;
+              String date = DateTime.now().toString();
+              String uid = globals.auth.currentUser!.uid;
+              String displayName = globals.auth.currentUser!.displayName!;
+
+              FeedbackModel data = FeedbackModel(
+                  uid: uid,
+                  displayName: displayName,
+                  feedback: feedback,
+                  date: date,
+                  rating: rating);
+
+              await data.storeFeedback(data.getFeedback());
+
+              Get.snackbar('Feedback Submission', 'Feedback submitted!',
+                  colorText: Colors.white);
+            },
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -168,9 +206,11 @@ class _MyHomePageState extends State<OwnerChatScreen> {
               onSelected: (result) {
                 if (result == 'Logout') {
                   globals.auth.signOut();
-                  Get.toNamed('/auth');
+                  Get.offNamed('/auth');
                 } else if (result == 'Settings') {
                   // FirebaseFirestore.instance.collection(collectionPath)
+                } else if (result == 'Feedback') {
+                  _showDialog();
                 }
               },
               icon: Icon(Icons.settings),

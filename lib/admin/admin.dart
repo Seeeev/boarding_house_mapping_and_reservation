@@ -7,6 +7,9 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+
+import 'package:flutter_rating_stars/flutter_rating_stars.dart';
+
 import 'package:get/get.dart';
 import 'package:boarding_house_mapping_v2/globals/gobals.dart' as globals;
 import 'package:faker/faker.dart';
@@ -191,6 +194,108 @@ class AdminScreen extends StatelessWidget {
     ));
   }
 
+  Widget _buildFeedbacks(context) {
+    return SliverToBoxAdapter(
+        child: StreamBuilder<QuerySnapshot>(
+            stream:
+                FirebaseFirestore.instance.collection('feedbacks').snapshots(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+              if (snapshot.hasData) {
+                return ListView.builder(
+                  primary: false,
+                  padding: EdgeInsets.all(5),
+                  shrinkWrap: true,
+                  itemCount: snapshot.data!.docs.length,
+                  itemBuilder: (context, index) => Card(
+                    child: Container(
+                      margin: EdgeInsets.all(10),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: Colors.black,
+                            foregroundColor: Colors.white,
+                            child: Text(
+                              snapshot.data!.docs[index]['displayName']
+                                  .toString()[0],
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Flexible(
+                            child: Container(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    snapshot.data!.docs[index]['displayName'],
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  RatingStars(
+                                    value: snapshot.data!.docs[index]['rating']
+                                        .toDouble(),
+                                    starBuilder: (index, color) => Icon(
+                                      Icons.star,
+                                      color: color,
+                                    ),
+                                    starCount: 5,
+                                    starSize: 20,
+                                    valueLabelColor: const Color(0xff9b9b9b),
+                                    valueLabelTextStyle: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w400,
+                                        fontStyle: FontStyle.normal,
+                                        fontSize: 12.0),
+                                    valueLabelRadius: 10,
+                                    maxValue: 5,
+                                    starSpacing: 2,
+                                    maxValueVisibility: true,
+                                    valueLabelVisibility: true,
+                                    animationDuration:
+                                        Duration(milliseconds: 1000),
+                                    valueLabelPadding:
+                                        const EdgeInsets.symmetric(
+                                            vertical: 1, horizontal: 8),
+                                    valueLabelMargin:
+                                        const EdgeInsets.only(right: 8),
+                                    starOffColor: const Color(0xffe7e8ea),
+                                    starColor: Colors.yellow,
+                                  ),
+                                  SizedBox(height: 10),
+                                  Container(
+                                    child: Text(
+                                      snapshot.data!.docs[index]['feedback'],
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Container(
+                                    alignment: Alignment.bottomRight,
+                                    child: Text(
+                                        snapshot.data!.docs[index]['date'],
+                                        style: TextStyle(fontSize: 10)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            }));
+  }
+
   static final _adminController = Get.put(AdminController());
   static final GlobalKey<CurvedNavigationBarState> _bottomNavigationKey =
       GlobalKey();
@@ -198,8 +303,9 @@ class AdminScreen extends StatelessWidget {
   static final _bottomNavIcons = <Widget>[
     Icon(Icons.add, size: 30, color: Colors.white),
     Icon(Icons.list, size: 30, color: Colors.white),
-    Icon(Icons.compare_arrows, size: 30, color: Colors.white),
+    Icon(Icons.feedback_rounded, size: 30, color: Colors.white),
   ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -223,7 +329,9 @@ class AdminScreen extends StatelessWidget {
                 _adminController.index.value == 0
                     // ? buildOwnerForm(context)
                     ? getForm(context)
-                    : _buildOwnerList(context),
+                    : _adminController.index.value == 1
+                        ? _buildOwnerList(context)
+                        : _buildFeedbacks(context),
                 // _buildOwnerList(),
               ],
             )));
