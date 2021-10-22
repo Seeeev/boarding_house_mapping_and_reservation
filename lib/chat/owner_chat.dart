@@ -165,16 +165,23 @@ class _MyHomePageState extends State<OwnerChatScreen> {
         context: context,
         builder: (context) {
           return RatingDialog(
-            title: "Goa Boarding House Mapping and Reservation System",
+            title: Text(
+              'Boarding House Mapping and Reservatin System',
+              textAlign: TextAlign.center,
+            ),
             commentHint: 'What do you think about our app?',
+            initialRating: 5,
+            starSize: 30,
             image: Image.asset(
               'assets/logo/logo.png',
+              width: 100,
+              height: 100,
               color: Colors.blue,
             ),
-            submitButton: 'Submit',
+            submitButtonText: 'Submit',
             onSubmitted: (response) async {
               String feedback = response.comment;
-              int rating = response.rating;
+              int rating = response.rating.toInt();
               String date = DateTime.now().toString();
               String uid = globals.auth.currentUser!.uid;
               String displayName = globals.auth.currentUser!.displayName!;

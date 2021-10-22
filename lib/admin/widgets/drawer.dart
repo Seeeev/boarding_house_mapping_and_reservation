@@ -10,13 +10,13 @@ Widget buildDrawer() => ListView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Goa Boarding House',
+                  Text('Boarding House Mapping',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 24,
+                        fontSize: 23,
                       )),
                   Text(
-                    'Map & Reservation System',
+                    '& Reservation System',
                     style: TextStyle(color: Colors.white),
                   ),
                 ],

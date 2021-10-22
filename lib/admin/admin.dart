@@ -96,40 +96,39 @@ class AdminScreen extends StatelessWidget {
   //   // return Container();
   // }
 
-  Widget _showListofOwners(context) {
-    return StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('boarding_houses')
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+  Widget _showListofOwners() {
+    return FutureBuilder<QuerySnapshot>(
+        future: FirebaseFirestore.instance.collection('boarding_houses').get(),
+        builder: (context, houseSnapshot) {
+          if (houseSnapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           }
-          if (snapshot.connectionState == ConnectionState.done) {
-            return _buildWidget(context, snapshot);
+          if (houseSnapshot.connectionState == ConnectionState.done) {
+            return _buildWidget(houseSnapshot);
           }
-          if (snapshot.connectionState == ConnectionState.none) {
+          if (houseSnapshot.connectionState == ConnectionState.none) {
             return Center(
                 child: Text('No landlords are registered at the moment'));
           }
-          if (snapshot.hasData) {
-            return _buildWidget(context, snapshot);
+          if (houseSnapshot.hasData) {
+            return _buildWidget(houseSnapshot);
           }
           return Center(child: CircularProgressIndicator());
         });
   }
 
-  Widget _buildWidget(context, snapshot) {
+  Widget _buildWidget(houseSnapshot) {
     return GridView.builder(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 1, childAspectRatio: 3),
       primary: false,
       padding: EdgeInsets.all(5),
       shrinkWrap: true,
-      itemCount: snapshot.data!.docs.length,
+      itemCount: houseSnapshot.data!.docs.length,
       itemBuilder: (context, index) => Card(
         child: InkWell(
-          onLongPress: () => print(snapshot.data!.docs[index]['ownerName']),
+          onLongPress: () =>
+              print(houseSnapshot.data!.docs[index]['ownerName']),
           child: Container(
             padding: EdgeInsets.all(10),
             child: Column(
@@ -142,7 +141,8 @@ class AdminScreen extends StatelessWidget {
                       backgroundColor: Colors.black,
                       foregroundColor: Colors.white,
                       child: Text(
-                        snapshot.data!.docs[index]['ownerName'].toString()[0],
+                        houseSnapshot.data!.docs[index]['ownerName']
+                            .toString()[0],
                       ),
                     ),
                     SizedBox(width: 5),
@@ -152,21 +152,22 @@ class AdminScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            snapshot.data!.docs[index]['ownerName'].toString(),
+                            houseSnapshot.data!.docs[index]['ownerName']
+                                .toString(),
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          Text(snapshot.data!.docs[index]['bldgName'])
+                          Text(houseSnapshot.data!.docs[index]['bldgName'])
                         ],
                       ),
                     ),
                   ],
                 ),
                 Text(
-                  snapshot.data!.docs[index]['address'].toString(),
+                  houseSnapshot.data!.docs[index]['address'].toString(),
                 ),
-                Text(snapshot.data!.docs[index]['lat'].toString() +
+                Text(houseSnapshot.data!.docs[index]['lat'].toString() +
                     " " +
-                    snapshot.data!.docs[index]['lng'].toString())
+                    houseSnapshot.data!.docs[index]['lng'].toString())
               ],
             ),
           ),
@@ -175,125 +176,160 @@ class AdminScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOwnerList(context) {
+  Widget _buildOwnerList() {
     return SliverToBoxAdapter(
-        child: Column(
-      children: [
-        Container(
-          margin: EdgeInsets.all(20),
-          child: Row(
-            children: [
-              Text('Owners', style: TextStyle(color: Colors.black45)),
-              Expanded(child: Container()),
-              Text('Sort by', style: TextStyle(color: Colors.black45)),
-            ],
+      child: Column(
+        children: [
+          Container(
+            margin: EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Text('Owners', style: TextStyle(color: Colors.black45)),
+                Expanded(child: Container()),
+                Text('Sort by', style: TextStyle(color: Colors.black45)),
+              ],
+            ),
           ),
-        ),
-        _showListofOwners(context)
-      ],
-    ));
+          _showListofOwners()
+        ],
+      ),
+    );
   }
 
-  Widget _buildFeedbacks(context) {
+  Widget _buildFeedbacks() {
     return SliverToBoxAdapter(
-        child: StreamBuilder<QuerySnapshot>(
-            stream:
-                FirebaseFirestore.instance.collection('feedbacks').snapshots(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
+      child: Column(
+        children: [
+          Container(
+            margin: EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Text('Feedbacks', style: TextStyle(color: Colors.black45)),
+                Expanded(child: Container()),
+                Text('Sort by', style: TextStyle(color: Colors.black45)),
+              ],
+            ),
+          ),
+          StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('feedbacks')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+                if (snapshot.hasData) {
+                  return ListView.builder(
+                      primary: false,
+                      padding: EdgeInsets.all(5),
+                      shrinkWrap: true,
+                      itemCount: snapshot.data!.docs.length,
+                      itemBuilder: (context, index) {
+                        print('data');
+                        print(snapshot.data!.docs[index].data());
+                        return Dismissible(
+                          key:
+                              Key(snapshot.data!.docs[index].data().toString()),
+                          child: _buildCard(snapshot, index),
+                          direction: DismissDirection.endToStart,
+                          background: Container(
+                              alignment: Alignment.centerRight,
+                              padding: EdgeInsets.only(right: 10),
+                              color: Colors.red,
+                              child: Icon(
+                                Icons.delete,
+                                color: Colors.white,
+                              )),
+                          onDismissed: (direction) {
+                            snapshot.data!.docs[index].reference.delete();
+                            Get.snackbar('Delete', 'Feedback deleted.',
+                                colorText: Colors.white);
+                          },
+                        );
+                      });
+                }
                 return Center(
                   child: CircularProgressIndicator(),
                 );
-              }
-              if (snapshot.hasData) {
-                return ListView.builder(
-                  primary: false,
-                  padding: EdgeInsets.all(5),
-                  shrinkWrap: true,
-                  itemCount: snapshot.data!.docs.length,
-                  itemBuilder: (context, index) => Card(
-                    child: Container(
-                      margin: EdgeInsets.all(10),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: Colors.black,
-                            foregroundColor: Colors.white,
-                            child: Text(
-                              snapshot.data!.docs[index]['displayName']
-                                  .toString()[0],
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Flexible(
-                            child: Container(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    snapshot.data!.docs[index]['displayName'],
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  RatingStars(
-                                    value: snapshot.data!.docs[index]['rating']
-                                        .toDouble(),
-                                    starBuilder: (index, color) => Icon(
-                                      Icons.star,
-                                      color: color,
-                                    ),
-                                    starCount: 5,
-                                    starSize: 20,
-                                    valueLabelColor: const Color(0xff9b9b9b),
-                                    valueLabelTextStyle: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w400,
-                                        fontStyle: FontStyle.normal,
-                                        fontSize: 12.0),
-                                    valueLabelRadius: 10,
-                                    maxValue: 5,
-                                    starSpacing: 2,
-                                    maxValueVisibility: true,
-                                    valueLabelVisibility: true,
-                                    animationDuration:
-                                        Duration(milliseconds: 1000),
-                                    valueLabelPadding:
-                                        const EdgeInsets.symmetric(
-                                            vertical: 1, horizontal: 8),
-                                    valueLabelMargin:
-                                        const EdgeInsets.only(right: 8),
-                                    starOffColor: const Color(0xffe7e8ea),
-                                    starColor: Colors.yellow,
-                                  ),
-                                  SizedBox(height: 10),
-                                  Container(
-                                    child: Text(
-                                      snapshot.data!.docs[index]['feedback'],
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Container(
-                                    alignment: Alignment.bottomRight,
-                                    child: Text(
-                                        snapshot.data!.docs[index]['date'],
-                                        style: TextStyle(fontSize: 10)),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+              }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCard(snapshot, index) {
+    return Card(
+      child: Container(
+        margin: EdgeInsets.all(10),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+              child: Text(
+                snapshot.data!.docs[index]['displayName'].toString()[0],
+              ),
+            ),
+            SizedBox(width: 8),
+            Flexible(
+              child: Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      snapshot.data!.docs[index]['displayName'],
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    RatingStars(
+                      value: snapshot.data!.docs[index]['rating'].toDouble(),
+                      starBuilder: (index, color) => Icon(
+                        Icons.star,
+                        color: color,
+                      ),
+                      starCount: 5,
+                      starSize: 20,
+                      valueLabelColor: const Color(0xff9b9b9b),
+                      valueLabelTextStyle: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w400,
+                          fontStyle: FontStyle.normal,
+                          fontSize: 12.0),
+                      valueLabelRadius: 10,
+                      maxValue: 5,
+                      starSpacing: 2,
+                      maxValueVisibility: true,
+                      valueLabelVisibility: true,
+                      animationDuration: Duration(milliseconds: 1000),
+                      valueLabelPadding: const EdgeInsets.symmetric(
+                          vertical: 1, horizontal: 8),
+                      valueLabelMargin: const EdgeInsets.only(right: 8),
+                      starOffColor: const Color(0xffe7e8ea),
+                      starColor: Colors.yellow,
+                    ),
+                    SizedBox(height: 10),
+                    Container(
+                      child: Text(
+                        snapshot.data!.docs[index]['feedback'],
+                        style: TextStyle(color: Colors.grey),
                       ),
                     ),
-                  ),
-                );
-              }
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            }));
+                    SizedBox(height: 4),
+                    Container(
+                      alignment: Alignment.bottomRight,
+                      child: Text(snapshot.data!.docs[index]['date'],
+                          style: TextStyle(fontSize: 10)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   static final _adminController = Get.put(AdminController());
@@ -309,31 +345,34 @@ class AdminScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        bottomNavigationBar: CurvedNavigationBar(
-          index: 1,
-          key: _bottomNavigationKey,
-          onTap: (index) {
-            _adminController.updateIndex(index);
-          },
-          color: Colors.black87,
-          backgroundColor: Colors.white,
-          buttonBackgroundColor: Colors.black87,
-          items: _bottomNavIcons,
+      bottomNavigationBar: CurvedNavigationBar(
+        index: 1,
+        key: _bottomNavigationKey,
+        onTap: (index) {
+          _adminController.updateIndex(index);
+        },
+        color: Colors.black87,
+        backgroundColor: Colors.white,
+        buttonBackgroundColor: Colors.black87,
+        items: _bottomNavIcons,
+      ),
+      drawer: Drawer(
+        child: buildDrawer(),
+      ),
+      body: Obx(
+        () => CustomScrollView(
+          slivers: [
+            buildAppbar(),
+            _adminController.index.value == 0
+                // ? buildOwnerForm(context)
+                ? getForm(context)
+                : _adminController.index.value == 1
+                    ? _buildOwnerList()
+                    : _buildFeedbacks(),
+            // _buildOwnerList(),
+          ],
         ),
-        drawer: Drawer(
-          child: buildDrawer(),
-        ),
-        body: Obx(() => CustomScrollView(
-              slivers: [
-                buildAppbar(),
-                _adminController.index.value == 0
-                    // ? buildOwnerForm(context)
-                    ? getForm(context)
-                    : _adminController.index.value == 1
-                        ? _buildOwnerList(context)
-                        : _buildFeedbacks(context),
-                // _buildOwnerList(),
-              ],
-            )));
+      ),
+    );
   }
 }
