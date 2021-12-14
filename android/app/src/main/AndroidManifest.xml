@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.boarding_house_mapping_v2">
    <application
-        android:label="boarding_house_mapping_v2"
+        android:label="Boarding House Mapping"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
