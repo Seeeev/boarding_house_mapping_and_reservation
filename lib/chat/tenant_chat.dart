@@ -1,3 +1,4 @@
+import 'package:boarding_house_mapping_v2/tenant/widgets/rate.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:io';
@@ -123,6 +124,7 @@ class _MyHomePageState extends State<TenantChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        actions: [Rate(), SizedBox(width: 15)],
         title: Text("${Get.parameters['ownerName']}"),
       ),
       body: StreamBuilder<QuerySnapshot>(

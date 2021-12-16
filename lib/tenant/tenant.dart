@@ -14,7 +14,7 @@ class TenantView extends StatelessWidget {
   Widget build(BuildContext context) {
     print('current route tenant');
     return Scaffold(
-      drawer: buidDrawer(),
+      // drawer: buidDrawer(),
       extendBodyBehindAppBar: true,
       appBar: buildAppBar(),
       // body: tenantController.isMapLoading.value == 1

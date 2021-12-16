@@ -204,7 +204,67 @@ class _MyHomePageState extends State<OwnerChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final _roomCountController = TextEditingController();
     return Scaffold(
+      drawer: Drawer(
+        backgroundColor: Colors.blue,
+        child: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('boarding_houses')
+                .where('uid', isEqualTo: 'lHwLiv1ekDcXojlKXbPIfUuGSRT2')
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Center(child: Text('Error fetching data'));
+              } else if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else {
+                return ListView.builder(
+                    itemCount: snapshot.data!.docs.length,
+                    itemBuilder: (context, index) {
+                      var _roomCountController = TextEditingController(
+                          text: snapshot.data!.docs[index]['roomCount']);
+                      return InkWell(
+                        onLongPress: () => {
+                          Get.defaultDialog(
+                              title: 'Edit available rooms',
+                              content: TextFormField(
+                                controller: _roomCountController,
+                                textAlign: TextAlign.center,
+                              ),
+                              onCancel: () {},
+                              onConfirm: () {
+                                FirebaseFirestore.instance
+                                    .collection('boarding_houses')
+                                    .doc(snapshot.data!.docs[index].id)
+                                    .update({
+                                  'roomCount': _roomCountController.value.text
+                                }).then((value) => Get.back());
+                              })
+                        },
+                        child: ListTile(
+                          leading: Icon(
+                            Icons.home,
+                            color: Colors.white,
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(snapshot.data!.docs[index]['roomCount']),
+                              SizedBox(width: 5),
+                              Icon(Icons.airline_seat_individual_suite_rounded)
+                            ],
+                          ),
+                          title: Text(
+                            snapshot.data!.docs[index]['bldgName'],
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      );
+                    });
+              }
+            }),
+      ),
       appBar: AppBar(
         title: Text(globals.auth.currentUser!.displayName!),
         centerTitle: true,

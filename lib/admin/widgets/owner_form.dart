@@ -581,6 +581,14 @@ Widget buildOwnerForm(context, _auth) {
                 ]),
                 decoration: InputDecoration(labelText: 'Longitude'),
               ),
+              FormBuilderTextField(
+                name: 'roomCount',
+                keyboardType: TextInputType.number,
+                validator: FormBuilderValidators.compose([
+                  FormBuilderValidators.required(context),
+                ]),
+                decoration: InputDecoration(labelText: 'Total Rooms'),
+              ),
               Container(
                 height: 300,
                 child: Card(
@@ -690,6 +698,8 @@ Widget buildOwnerForm(context, _auth) {
                             _formKey.currentState!.fields['bldgName']!.value,
                         content:
                             _formKey.currentState!.fields['content']!.value,
+                        roomCount:
+                            _formKey.currentState!.fields['roomCount']!.value,
                         lat: double.parse(
                             _formKey.currentState!.fields['lat']!.value),
                         lng: double.parse(

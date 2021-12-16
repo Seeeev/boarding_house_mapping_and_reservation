@@ -7,9 +7,10 @@ class OwnerInfo {
   double lat;
   double lng;
   String content;
+  String roomCount;
 
   OwnerInfo(this.uid, this.ownerName, this.bldgName, this.address, this.lat,
-      this.lng, this.content);
+      this.lng, this.content, this.roomCount);
 
   getMap() {
     return {
@@ -20,6 +21,7 @@ class OwnerInfo {
       'lat': lat,
       'lng': lng,
       'content': content,
+      'roomCount': roomCount,
     };
   }
 }
