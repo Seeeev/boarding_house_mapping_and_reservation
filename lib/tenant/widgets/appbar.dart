@@ -6,7 +6,6 @@ import 'action_button.dart';
 
 PreferredSizeWidget buildAppBar() {
   return AppBar(
-    leading: Rate(),
     backgroundColor: Colors.transparent,
     actions: [actionButton(), SizedBox(width: 12)],
     elevation: 0,

@@ -204,14 +204,13 @@ class _MyHomePageState extends State<OwnerChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final _roomCountController = TextEditingController();
     return Scaffold(
       drawer: Drawer(
         backgroundColor: Colors.blue,
         child: StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
                 .collection('boarding_houses')
-                .where('uid', isEqualTo: 'lHwLiv1ekDcXojlKXbPIfUuGSRT2')
+                .where('uid', isEqualTo: globals.auth.currentUser!.uid)
                 .snapshots(),
             builder: (context, snapshot) {
               if (snapshot.hasError) {

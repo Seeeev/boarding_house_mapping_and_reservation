@@ -1,4 +1,5 @@
 // pub dev packages
+import 'package:boarding_house_mapping_v2/admin/widgets/build_tenant_feedbacks.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -22,6 +23,7 @@ class AdminScreen extends StatelessWidget {
     Icon(Icons.add, size: 30, color: Colors.white),
     Icon(Icons.list, size: 30, color: Colors.white),
     Icon(Icons.feedback_rounded, size: 30, color: Colors.white),
+    Icon(Icons.star_rate, size: 30, color: Colors.white),
   ];
 
   @override
@@ -50,7 +52,10 @@ class AdminScreen extends StatelessWidget {
                 ? getForm(context)
                 : _adminController.index.value == 1
                     ? BuildOwnerList()
-                    : BuildFeedbacks(),
+                    : _adminController.index.value == 2
+                        ? BuildFeedbacks()
+                        : BuildTenantFeedbacks()
+
             // _buildOwnerList(),
           ],
         ),

@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_stars/flutter_rating_stars.dart';
 import 'package:get/get.dart';
 
-class BuildFeedbacks extends StatelessWidget {
-  const BuildFeedbacks({Key? key}) : super(key: key);
+class BuildTenantFeedbacks extends StatelessWidget {
+  const BuildTenantFeedbacks({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,8 +15,7 @@ class BuildFeedbacks extends StatelessWidget {
             margin: EdgeInsets.all(20),
             child: Row(
               children: [
-                Text('Owner Feedbacks',
-                    style: TextStyle(color: Colors.black45)),
+                Text('Tenant Ratings', style: TextStyle(color: Colors.black45)),
                 Expanded(child: Container()),
                 Text('Sort by', style: TextStyle(color: Colors.black45)),
               ],
@@ -24,7 +23,7 @@ class BuildFeedbacks extends StatelessWidget {
           ),
           StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
-                  .collection('feedbacks')
+                  .collection('tenant_ratings')
                   .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
@@ -56,7 +55,7 @@ class BuildFeedbacks extends StatelessWidget {
                               )),
                           onDismissed: (direction) {
                             snapshot.data!.docs[index].reference.delete();
-                            Get.snackbar('Delete', 'Feedback deleted.',
+                            Get.snackbar('Delete', 'Rating deleted.',
                                 colorText: Colors.white);
                           },
                         );
